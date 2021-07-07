@@ -1,29 +1,7 @@
-rule get_chrom_sizes:
-    output: chr_sizes
-    params:
-        ftp = "ftp://ftp.ncbi.nlm.nih.gov/genomes/genbank/vertebrate_mammalian/Homo_sapiens/all_assembly_versions",
-        genbank = config['ref']['genbank'],
-        build = build
-    threads: 1
-    shell:
-        """
-        # Download the assembly report
-        TEMPDIR=$(mktemp -d -t chrXXXXXXXXXX)
-        REPORT="{params.genbank}_{params.build}_assembly_report.txt"
-        URL="{params.ftp}/{params.genbank}_{params.build}/{params.genbank}_{params.build}_assembly_report.txt"
-        wget -O "$TEMPDIR/$REPORT" $URL
-
-        # Extract the chrom_sizes
-        egrep 'assembled-molecule' "$TEMPDIR/$REPORT" | \
-          awk '{{print $11"\t"$10}}' > {output}
-
-        rm -rf $TEMPDIR
-        """
-
 rule find_rs_fragments:
-    input: rules.get_reference.output.fa
+    input: rules.unzip_reference.output
     output:
-        script = "scripts/digest_genome.py",
+        script = temp("scripts/digest_genome.py"),
         rs = rs_frags
     params:
         enzyme = config['hicpro']['enzyme']

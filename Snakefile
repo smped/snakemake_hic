@@ -20,10 +20,11 @@ read_ext = [config['hicpro']['pair1_ext'], config['hicpro']['pair2_ext']]
 #################################
 
 build = config['ref']['build']
-gencode_rl = str(config['ref']['gencode'])
+genbank = config['ref']['genbank']
+gencode = str(config['ref']['gencode'])
 ref_path = os.path.join(
     config['ref']['root'], 
-    "gencode-release-" + gencode_rl,
+    "gencode-release-" + gencode,
     build,
     "dna"
     )
@@ -41,18 +42,24 @@ raw_path = "data/raw/fastq"
 trim_path = "data/trimmed/fastq"
 
 FAGZ = [os.path.join(ref_path, ref_fagz)]
-BOWTIEIDX = expand([ref_path + "/bt2/{prefix}.{sub}.bt2"],
-               prefix = build + "." + assembly,
-               sub = ['1', '2', '3', '4', 'rev.1', 'rev.2'] )
-FQC_OUTS = expand(["data/{step}/FastQC/{sample}_{reads}_fastqc.{suffix}"],
-                 suffix = ['zip', 'html'],
-                 reads = ['R1', 'R2'],
-                 sample = list(df['path']),
-                 step = ['raw', 'trimmed'])
-TRIM_OUTS = expand([trim_path + "/{sample}_{reads}{suffix}"],
-                  sample = list(df['path']),
-                  suffix = suffix,
-                  reads = ['R1', 'R2'])
+BOWTIEIDX = expand(
+    [ref_path + "/bt2/{prefix}.{sub}.bt2"],
+    prefix = build + "." + assembly,
+    sub = ['1', '2', '3', '4', 'rev.1', 'rev.2']
+)
+FQC_OUTS = expand(
+    ["data/{step}/FastQC/{sample}_{reads}_fastqc.{suffix}"],
+    suffix = ['zip', 'html'],
+    reads = ['R1', 'R2'],
+    sample = list(df['path']),
+    step = ['raw', 'trimmed']
+)
+TRIM_OUTS = expand(
+    [trim_path + "/{sample}_{reads}{suffix}"],
+    sample = list(df['path']),
+    suffix = suffix,
+    reads = ['R1', 'R2']
+)
 
 ALL_OUTPUTS = []
 ALL_OUTPUTS.extend([BOWTIEIDX])

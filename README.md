@@ -6,7 +6,10 @@ The steps currently implemented are:
 1 - Download and index the genome
 2 - Trim raw data using `AdapterRemoval`
 3 - Run `FastQC` on raw and trimmed data
-4 - Organise genome annotations and restriction fragments for HiC-Pro
+4 - Prepare Files for HiC-Pro
+    + Organise genome annotations 
+    + Define restriction fragments 
+    + Update `hicpro-config.txt` based on `config.yml`
 
 ## Setup
 
@@ -36,7 +39,7 @@ dot -Tpdf .snakemake/rulegraph.dot > .snakemake/rulegraph.pdf
 
 ```
 snakemake \
-    --useconda \
+    --use-conda \
     --notemp \
     --cores 12
 ```
