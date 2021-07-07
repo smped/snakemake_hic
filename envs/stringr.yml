@@ -3,7 +3,7 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - r-base=4.0.2
+  - r-base=4.1.0
   - r-stringr
   - r-magrittr
   - r-yaml

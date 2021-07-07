@@ -31,11 +31,6 @@ ref_path = os.path.join(
 assembly = config['ref']['assembly'] + ".genome"
 ref_fa = build + "." + assembly + ".fa"
 ref_fagz = build + "." + assembly + ".fa.gz"
-chr_sizes = os.path.join("config", build + ".chr_sizes.tsv")
-rs_frags = os.path.join(
-    "config",
-    build + "_" + config['hicpro']['enzyme'] + "_fragment.bed"
-    )
 
 ##########################################################
 ## Define all the required outputs from the setup steps ##
@@ -68,11 +63,20 @@ ALL_OUTPUTS.extend(TRIM_OUTS)
 #####################
 ## HiC-Pro outputs ##
 #####################
-# hic_path = "data/hic"
-# REFS = [chr_sizes, rs_frags]
-# bins = re.split(r" ", config['hicpro']['bin_size'])
-# hicpro_config = "config/hicpro-config.txt"
-# digest_script = "scripts/digest_genome.py"
+hic_path = "data/hic"
+
+# Required annotations during setup for HiC-Pro
+chr_sizes = os.path.join("config", build + ".chr_sizes.tsv")
+rs_frags = os.path.join(
+    "config",
+    build + "_" + config['hicpro']['enzyme'] + "_fragment.bed"
+    )
+REFS = [chr_sizes, rs_frags]
+
+# Update the config file
+bins = re.split(r" ", config['hicpro']['bin_size'])
+hicpro_config = "config/hicpro-config.txt"
+digest_script = "scripts/digest_genome.py"
 # PROC_PAIRS = expand([hic_path + "/hic_results/data/{sample}/{sample}_" + build + "." + assembly + ".bwt2pairs.validPairs"],
 #                     sample = samples)
 # HIC_QC = expand([hic_path + "/hic_results/pic/{sample}"], sample = samples)
@@ -85,8 +89,8 @@ ALL_OUTPUTS.extend(TRIM_OUTS)
 # MERGED_INT = expand([hic_path + "/hic_results/matrix/merged/raw/{bin}/merged_{bin}{suffix}"],
 #                     bin = bins, suffix = ['.matrix', '_abs.bed'])
 
-# ALL_OUTPUTS.extend(REFS)
-# ALL_OUTPUTS.extend([hicpro_config, digest_script])
+ALL_OUTPUTS.extend(REFS)
+ALL_OUTPUTS.extend([hicpro_config, digest_script])
 # ALL_OUTPUTS.extend(PROC_PAIRS)
 # ALL_OUTPUTS.extend(HIC_QC)
 # ALL_OUTPUTS.extend(VALID_PAIRS)
@@ -124,7 +128,7 @@ rule all:
 include: "rules/reference.smk"
 include: "rules/qc.smk"
 include: "rules/trimming.smk"
-# include: "rules/hicpro.smk"
+include: "rules/hicpro.smk"
 # include: "rules/merge_matrices.smk"
 # include: "rules/maxhic.smk"
 
