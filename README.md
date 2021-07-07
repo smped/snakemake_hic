@@ -3,10 +3,10 @@
 This is a template repository for running HiC-Pro under snakemake.
 The steps currently implemented are:
 
-1 - Download and index the genome
-2 - Trim raw data using `AdapterRemoval`
-3 - Run `FastQC` on raw and trimmed data
-4 - Prepare Files for HiC-Pro
+1. Download and index the genome
+2. Trim raw data using `AdapterRemoval`
+3. Run `FastQC` on raw and trimmed data
+4. Prepare Files for HiC-Pro
     + Organise genome annotations 
     + Define restriction fragments 
     + Update `hicpro-config.txt` based on `config.yml`
