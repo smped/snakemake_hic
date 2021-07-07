@@ -23,6 +23,11 @@ rule make_hicpro_config:
         chr_sizes = chr_sizes
     output:
         hicpro_config
+    params:
+        template = os.path.join(
+            os.path.dirname(hic_path), 
+            "config-hicpro.txt"
+        )
     conda: "../envs/stringr.yml"
     threads: 1
     shell:
@@ -33,6 +38,7 @@ rule make_hicpro_config:
           $IDX \
           {input.chr_sizes} \
           {input.rs} \
+          {params.template} \
           {output}
         """
 
