@@ -25,7 +25,7 @@ This workflow is built around v3.0.0
 
 ## Testing
 
-- Once all edits are performed and data is uploaded, run `snamekmake -n` as a dry run to check everything will work as expected
+- Once all edits are performed and data is uploaded, run `snakemake -n` as a dry run to check everything will work as expected
 - If the dry run is successful, create the conda environments `snakemake --use-conda --conda-create-envs-only`. This may take a while.
 
 Create the rulegraph to check everything is as expected
