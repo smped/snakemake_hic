@@ -18,7 +18,8 @@ Please ensure you have a working installation on your system.
 This workflow is built around v3.0.0
 
 - Data must be placed in `data/raw/fastq`
-    + Each sample/replicate needs to go in a separate folder
+    + Each sample/replicate needs to go in a separate folder. Use the test dataset as a guide.
+    + Delete the test data once you have placed yours in the correct folder
 - Edit `config/samples.tsv` to reflect the sample names and file names. 
     + Data is assumed to be paired, so only one file needs to be listed per directory
 - Edit `config/config.yml`
