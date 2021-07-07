@@ -3,8 +3,12 @@ import os
 import re
 import subprocess
 
-## Check that HiC-Pro is installed
-rc = subprocess.call(['which', 'samtools'])
+configfile: "config/config.yml"
+
+#####################################
+## Check that HiC-Pro is installed ##
+#####################################
+rc = subprocess.call(['which', 'HiC-Pro'])
 if not rc == 0:
     print("HiC-Pro not installed")
     sys.exit(1)
@@ -13,8 +17,6 @@ hic_path = subprocess.run(
     ['which', 'samtools'], 
     check=True, text=True, 
     stdout=subprocess.PIPE).stdout[:-1]
-
-configfile: "config/config.yml"
 
 ##################
 # Define Samples #
@@ -95,7 +97,6 @@ REFS = [chr_sizes, rs_frags]
 # Update the config file
 bins = re.split(r" ", config['hicpro']['bin_size'])
 hicpro_config = "config/hicpro-config.txt"
-digest_script = "scripts/digest_genome.py"
 # PROC_PAIRS = expand([hic_data_path + "/hic_results/data/{sample}/{sample}_" + build + "." + assembly + ".bwt2pairs.validPairs"],
 #                     sample = samples)
 # HIC_QC = expand([hic_data_path + "/hic_results/pic/{sample}"], sample = samples)
@@ -109,7 +110,7 @@ digest_script = "scripts/digest_genome.py"
 #                     bin = bins, suffix = ['.matrix', '_abs.bed'])
 
 ALL_OUTPUTS.extend(REFS)
-ALL_OUTPUTS.extend([hicpro_config, digest_script])
+ALL_OUTPUTS.extend([hicpro_config])
 # ALL_OUTPUTS.extend(PROC_PAIRS)
 # ALL_OUTPUTS.extend(HIC_QC)
 # ALL_OUTPUTS.extend(VALID_PAIRS)

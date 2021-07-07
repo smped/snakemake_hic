@@ -3,14 +3,14 @@ rule find_rs_fragments:
     output:
         rs = rs_frags
     params:
-        enzyme = config['hicpro']['enzyme']
-        script_path = os.join.path(hic_path, "utils", "digest_genome.py")
+        enzyme = config['hicpro']['enzyme'],
+        script = os.path.join(hic_path, "utils", "digest_genome.py")
     threads: 1
     conda: "../envs/hicpro.yml"
     shell:
         """
         # Run the python script
-        python {script_path} \
+        python {params.script} \
           -r {params.enzyme} \
           -o {output.rs} \
           {input}
