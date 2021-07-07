@@ -1,0 +1,9 @@
+.snakemake/*
+.vscode/*
+*bam
+*bai
+*fastq
+*fastq.gz
+*fq
+*fq.gz
+*sam
