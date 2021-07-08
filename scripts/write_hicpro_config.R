@@ -33,7 +33,7 @@ orig %>%
   ) %>%
   str_replace("^GENOME_SIZE.+", paste("GENOME_SIZE =", args[[2]])) %>%
   str_replace("^GENOME_FRAGMENT.+", paste("GENOME_FRAGMENT =", args[[3]])) %>%
-  str_replace("^LIGATION_SITE.+", paste("LIGATION_SITE =", config$hicpro$ligation_site)) %>%
+  str_replace("^LIGATION_SITE.+", paste("LIGATION_SITE =", config$hicpro$restriction_site)) %>%
   str_replace("^BIN_SIZE.+", paste("BIN_SIZE =", config$hicpro$bin_size)) %>%
   str_replace("^MATRIX_FORMAT.+", paste("MATRIX_FORMAT =", config$hicpro$matrix_format)) %>%
   writeLines(con = args[[5]])

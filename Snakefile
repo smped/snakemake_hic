@@ -14,9 +14,9 @@ if not rc == 0:
     sys.exit(1)
 # Get the path if installed
 hic_path = subprocess.run(
-    ['which', 'samtools'], 
+    ['which', 'HiC-Pro'], 
     check=True, text=True, 
-    stdout=subprocess.PIPE).stdout[:-1]
+    stdout=subprocess.PIPE).stdout
 
 ##################
 # Define Samples #
@@ -87,9 +87,14 @@ ALL_OUTPUTS.extend(TRIM_OUTS)
 hic_data_path = "data/hic"
 
 # Required annotations during setup for HiC-Pro
-chr_sizes = os.path.join("config", build + ".chr_sizes.tsv")
+chr_sizes = os.path.join(
+    "output", 
+    build,
+     build + ".chr_sizes.tsv"
+)
 rs_frags = os.path.join(
-    "config",
+    "output", 
+    build,
     build + "_" + config['hicpro']['enzyme'] + "_fragment.bed"
     )
 REFS = [chr_sizes, rs_frags]

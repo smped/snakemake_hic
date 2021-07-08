@@ -3,39 +3,44 @@ rule find_rs_fragments:
     output:
         rs = rs_frags
     params:
-        enzyme = config['hicpro']['enzyme'],
-        script = os.path.join(hic_path, "utils", "digest_genome.py")
+        restriction_site = config['hicpro']['restriction_site'],
+        script = os.path.join(
+          os.path.dirname(hic_path), 
+          "utils", 
+          "digest_genome.py"
+        )
     threads: 1
     conda: "../envs/hicpro.yml"
     shell:
         """
         # Run the python script
         python {params.script} \
-          -r {params.enzyme} \
+          -r {params.restriction_site} \
           -o {output.rs} \
           {input}
         """
 
 rule make_hicpro_config:
     input:
-        idx = rules.bowtie2_index.output[0],
+        idx = os.path.dirname(rules.bowtie2_index.output[0]),
         rs = rs_frags,
         chr_sizes = chr_sizes
     output:
         hicpro_config
     params:
         template = os.path.join(
-            os.path.dirname(hic_path), 
-            "config-hicpro.txt"
+          os.path.dirname(
+            os.path.dirname(hic_path)
+          ), 
+          "config-hicpro.txt"
         )
     conda: "../envs/stringr.yml"
     threads: 1
     shell:
         """
-        IDX=$(dirname {input.idx})
         Rscript --vanilla \
           scripts/write_hicpro_config.R \
-          $IDX \
+          {input.idx} \
           {input.chr_sizes} \
           {input.rs} \
           {params.template} \
