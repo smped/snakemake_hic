@@ -1,8 +1,22 @@
 import pandas as pd
 import os
 import re
+import subprocess
 
 configfile: "config/config.yml"
+
+#####################################
+## Check that HiC-Pro is installed ##
+#####################################
+rc = subprocess.call(['which', 'HiC-Pro'])
+if not rc == 0:
+    print("HiC-Pro not installed")
+    sys.exit(1)
+# Get the path if installed
+hic_path = subprocess.run(
+    ['which', 'HiC-Pro'], 
+    check=True, text=True, 
+    stdout=subprocess.PIPE).stdout
 
 ##################
 # Define Samples #
@@ -70,12 +84,17 @@ ALL_OUTPUTS.extend(TRIM_OUTS)
 #####################
 ## HiC-Pro outputs ##
 #####################
-hic_path = "data/hic"
+hic_data_path = "data/hic"
 
 # Required annotations during setup for HiC-Pro
-chr_sizes = os.path.join("config", build + ".chr_sizes.tsv")
+chr_sizes = os.path.join(
+    "output", 
+    build,
+     build + ".chr_sizes.tsv"
+)
 rs_frags = os.path.join(
-    "config",
+    "output", 
+    build,
     build + "_" + config['hicpro']['enzyme'] + "_fragment.bed"
     )
 REFS = [chr_sizes, rs_frags]
@@ -83,21 +102,20 @@ REFS = [chr_sizes, rs_frags]
 # Update the config file
 bins = re.split(r" ", config['hicpro']['bin_size'])
 hicpro_config = "config/hicpro-config.txt"
-digest_script = "scripts/digest_genome.py"
-# PROC_PAIRS = expand([hic_path + "/hic_results/data/{sample}/{sample}_" + build + "." + assembly + ".bwt2pairs.validPairs"],
+# PROC_PAIRS = expand([hic_data_path + "/hic_results/data/{sample}/{sample}_" + build + "." + assembly + ".bwt2pairs.validPairs"],
 #                     sample = samples)
-# HIC_QC = expand([hic_path + "/hic_results/pic/{sample}"], sample = samples)
-# VALID_PAIRS = expand([hic_path + "/hic_results/data/{sample}/{sample}_allValidPairs"],
+# HIC_QC = expand([hic_data_path + "/hic_results/pic/{sample}"], sample = samples)
+# VALID_PAIRS = expand([hic_data_path + "/hic_results/data/{sample}/{sample}_allValidPairs"],
 #                        sample = samples)
-# HIC_MAT = expand([hic_path + "/hic_results/matrix/{sample}/raw/{bin}/{sample}_{bin}.matrix"],
+# HIC_MAT = expand([hic_data_path + "/hic_results/matrix/{sample}/raw/{bin}/{sample}_{bin}.matrix"],
 #                   sample = samples, bin = bins)
-# HIC_BED = expand([hic_path + "/hic_results/matrix/{sample}/raw/{bin}/{sample}_{bin}_abs.bed"],
+# HIC_BED = expand([hic_data_path + "/hic_results/matrix/{sample}/raw/{bin}/{sample}_{bin}_abs.bed"],
 #                   sample = samples, bin = bins)
-# MERGED_INT = expand([hic_path + "/hic_results/matrix/merged/raw/{bin}/merged_{bin}{suffix}"],
+# MERGED_INT = expand([hic_data_path + "/hic_results/matrix/merged/raw/{bin}/merged_{bin}{suffix}"],
 #                     bin = bins, suffix = ['.matrix', '_abs.bed'])
 
 ALL_OUTPUTS.extend(REFS)
-ALL_OUTPUTS.extend([hicpro_config, digest_script])
+ALL_OUTPUTS.extend([hicpro_config])
 # ALL_OUTPUTS.extend(PROC_PAIRS)
 # ALL_OUTPUTS.extend(HIC_QC)
 # ALL_OUTPUTS.extend(VALID_PAIRS)

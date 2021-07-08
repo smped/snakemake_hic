@@ -1,43 +1,49 @@
 rule find_rs_fragments:
     input: rules.unzip_reference.output
     output:
-        script = temp("scripts/digest_genome.py"),
         rs = rs_frags
     params:
-        enzyme = config['hicpro']['enzyme']
+        restriction_site = config['hicpro']['restriction_site'],
+        script = os.path.join(
+          os.path.dirname(hic_path), 
+          "utils", 
+          "digest_genome.py"
+        )
     threads: 1
     conda: "../envs/hicpro.yml"
     shell:
         """
-        # Get v3.0.0 from the HiC-Pro repo
-        wget \
-          -O {output.script} \
-          "https://github.com/nservant/HiC-Pro/blob/fe045f68fb6af88f3ebd0e2609000e76ddcb7c1c/bin/utils/digest_genome.py"
-
         # Run the python script
-        python scripts/digest_genome.py \
-          -r {params.enzyme} \
+        python {params.script} \
+          -r {params.restriction_site} \
           -o {output.rs} \
           {input}
         """
 
 rule make_hicpro_config:
     input:
-        idx = rules.bowtie2_index.output[0],
+        idx = os.path.dirname(rules.bowtie2_index.output[0]),
         rs = rs_frags,
         chr_sizes = chr_sizes
     output:
         hicpro_config
+    params:
+        template = os.path.join(
+          os.path.dirname(
+            os.path.dirname(hic_path)
+          ), 
+          "config-hicpro.txt"
+        )
     conda: "../envs/stringr.yml"
     threads: 1
     shell:
         """
-        IDX=$(dirname {input.idx})
         Rscript --vanilla \
           scripts/write_hicpro_config.R \
-          $IDX \
+          {input.idx} \
           {input.chr_sizes} \
           {input.rs} \
+          {params.template} \
           {output}
         """
 
@@ -55,20 +61,20 @@ rule make_hicpro_config:
 #         ),
 #         glob = temp(
 #             expand(
-#                 [hic_path + "/bowtie_results/bwt2_global/{{sample}}/{{sample}}{reads}_" + build + "." + assembly + ".bwt2glob.{suffix}"],
+#                 [hic_data_path + "/bowtie_results/bwt2_global/{{sample}}/{{sample}}{reads}_" + build + "." + assembly + ".bwt2glob.{suffix}"],
 #                 reads = read_ext,
 #                 suffix = ['bam', 'unmap.fastq', 'unmap_trimmed.fastq']
 #             )
 #         ),
 #         local = temp(
 #             expand(
-#                 [hic_path + "/bowtie_results/bwt2_local/{{sample}}/{{sample}}{reads}_" + build + "." + assembly + ".bwt2glob.unmap_bwt2loc.bam"],
+#                 [hic_data_path + "/bowtie_results/bwt2_local/{{sample}}/{{sample}}{reads}_" + build + "." + assembly + ".bwt2glob.unmap_bwt2loc.bam"],
 #                 reads = read_ext
 #              )
 #         )
 #     params:
 #         indir = trim_path,
-#         outdir = hic_path
+#         outdir = hic_data_path
 #     log: "logs/hicpro/hicpro_mapping_{sample}.log"
 #     threads: config['hicpro']['ncpu']
 #     shell:
@@ -98,15 +104,15 @@ rule make_hicpro_config:
 #     input:
 #         config = hicpro_config,
 #         files = expand(
-#                 [hic_path + "/bowtie_results/bwt2/{{sample}}/{{sample}}{reads}_" + build + "." + assembly + ".bwt2merged.bam"],
+#                 [hic_data_path + "/bowtie_results/bwt2/{{sample}}/{{sample}}{reads}_" + build + "." + assembly + ".bwt2merged.bam"],
 #                 reads = read_ext
 #             )
 #     output:
-#         bam = temp(hic_path + "/bowtie_results/bwt2/{sample}/{sample}_" + build + "." + assembly + ".bwt2pairs.bam"),
-#         pairs = hic_path + "/hic_results/data/{sample}/{sample}_" + build + "." + assembly + ".bwt2pairs.validPairs"
+#         bam = temp(hic_data_path + "/bowtie_results/bwt2/{sample}/{sample}_" + build + "." + assembly + ".bwt2pairs.bam"),
+#         pairs = hic_data_path + "/hic_results/data/{sample}/{sample}_" + build + "." + assembly + ".bwt2pairs.validPairs"
 #     params:
-#         indir = hic_path + "/bowtie_results/bwt2",
-#         outdir = hic_path
+#         indir = hic_data_path + "/bowtie_results/bwt2",
+#         outdir = hic_data_path
 #     log: "logs/hicpro/hicpro_proc_{sample}.log"
 #     threads: config['hicpro']['ncpu']
 #     shell:
@@ -129,14 +135,14 @@ rule make_hicpro_config:
 #     input:
 #         config = hicpro_config,
 #         files = expand(
-#                 [hic_path + "/bowtie_results/bwt2/{{sample}}/{{sample}}{reads}_" + build + "." + assembly + ".bwt2merged.bam"],
+#                 [hic_data_path + "/bowtie_results/bwt2/{{sample}}/{{sample}}{reads}_" + build + "." + assembly + ".bwt2merged.bam"],
 #                 reads = read_ext
 #             )
 #     output:
-#         pic = directory(hic_path + "/hic_results/pic/{sample}")
+#         pic = directory(hic_data_path + "/hic_results/pic/{sample}")
 #     params:
-#         indir = hic_path + "/bowtie_results/bwt2",
-#         outdir = hic_path
+#         indir = hic_data_path + "/bowtie_results/bwt2",
+#         outdir = hic_data_path
 #     log: "logs/hicpro/hicpro_qc_{sample}.log"
 #     threads: config['hicpro']['ncpu']
 #     shell:
@@ -158,13 +164,13 @@ rule make_hicpro_config:
 # rule hicpro_merge:
 #     input:
 #         config = hicpro_config,
-#         files = hic_path + "/hic_results/data/{sample}/{sample}_" + build + "." + assembly + ".bwt2pairs.validPairs"
+#         files = hic_data_path + "/hic_results/data/{sample}/{sample}_" + build + "." + assembly + ".bwt2pairs.validPairs"
 #     output:
-#         pairs = hic_path + "/hic_results/data/{sample}/{sample}_allValidPairs",
-#         stat = hic_path + "/hic_results/data/{sample}/{sample}_allValidPairs.mergestat",
+#         pairs = hic_data_path + "/hic_results/data/{sample}/{sample}_allValidPairs",
+#         stat = hic_data_path + "/hic_results/data/{sample}/{sample}_allValidPairs.mergestat",
 #     params:
-#         indir = hic_path + "/hic_results/data",
-#         outdir = hic_path
+#         indir = hic_data_path + "/hic_results/data",
+#         outdir = hic_data_path
 #     log: "logs/hicpro/hicpro_merge_{sample}.log"
 #     threads: config['hicpro']['ncpu']
 #     shell:
@@ -186,15 +192,15 @@ rule make_hicpro_config:
 # rule build_contact_maps:
 #     input:
 #         config = hicpro_config,
-#         pairs = hic_path + "/hic_results/data/{sample}/{sample}_allValidPairs"
+#         pairs = hic_data_path + "/hic_results/data/{sample}/{sample}_allValidPairs"
 #     output:
-#         bed = expand([hic_path + "/hic_results/matrix/{{sample}}/raw/{bin}/{{sample}}_{bin}_abs.bed"],
+#         bed = expand([hic_data_path + "/hic_results/matrix/{{sample}}/raw/{bin}/{{sample}}_{bin}_abs.bed"],
 #                      bin = bins),
-#         mat = expand([hic_path + "/hic_results/matrix/{{sample}}/raw/{bin}/{{sample}}_{bin}.matrix"],
+#         mat = expand([hic_data_path + "/hic_results/matrix/{{sample}}/raw/{bin}/{{sample}}_{bin}.matrix"],
 #                      bin = bins)
 #     params:
-#         indir = hic_path + "/hic_results/data",
-#         outdir = hic_path
+#         indir = hic_data_path + "/hic_results/data",
+#         outdir = hic_data_path
 #     log: "logs/hicpro/build_contact_maps_{sample}.log"
 #     threads: config['hicpro']['ncpu']
 #     shell:

@@ -6,17 +6,18 @@ library(magrittr)
 ## 1 - The Bowtie2 Index path
 ## 2 - The chr_sizes file
 ## 3 - The genome fragments file
-## 4 - The location of the output file
+## 4 - The path to the HiC-Pro template
+## 5 - The location of the output file
 args <- commandArgs(TRUE)
-stopifnot(length(args) == 4)
+stopifnot(length(args) == 5)
 
 ## Load the local YAML config file
 config <- read_yaml(here::here("config/config.yml"))
 
-## Download the HiC-Pro config file from the repo for v3.0.0
-orig <- readLines(
-  "https://github.com/nservant/HiC-Pro/blob/fe045f68fb6af88f3ebd0e2609000e76ddcb7c1c/config-hicpro.txt"
-  )
+## Import the HiC-Pro config file from the installed version
+template <- args[[4]]
+stopifnot(file.exists(template))
+orig <- readLines(template)
 
 ## Modify & write the file
 orig %>%
@@ -32,8 +33,8 @@ orig %>%
   ) %>%
   str_replace("^GENOME_SIZE.+", paste("GENOME_SIZE =", args[[2]])) %>%
   str_replace("^GENOME_FRAGMENT.+", paste("GENOME_FRAGMENT =", args[[3]])) %>%
-  str_replace("^LIGATION_SITE.+", paste("LIGATION_SITE =", config$hicpro$ligation_site)) %>%
+  str_replace("^LIGATION_SITE.+", paste("LIGATION_SITE =", config$hicpro$restriction_site)) %>%
   str_replace("^BIN_SIZE.+", paste("BIN_SIZE =", config$hicpro$bin_size)) %>%
   str_replace("^MATRIX_FORMAT.+", paste("MATRIX_FORMAT =", config$hicpro$matrix_format)) %>%
-  writeLines(con = args[[4]])
+  writeLines(con = args[[5]])
 
