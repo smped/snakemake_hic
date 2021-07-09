@@ -221,10 +221,6 @@ rule build_contact_maps:
         pairs = expand(
           [hic_data_path + "/hic_results/data/{sample}/{sample}.allValidPairs"],
           sample = samples
-        ),
-        qc_pics = expand(
-          [hic_data_path + "/hic_results/pic/{sample}/plotMapping_{sample}.pdf"],
-          sample = samples
         )
     output:
       matrix = expand(
@@ -234,7 +230,9 @@ rule build_contact_maps:
         suffix = ['.matrix', '_abs.bed']
       )
       ## Can't figure out why these don't get created when specified,
-      ## but do get created when not specified
+      ## but do get created when not specified. Placing the output from qc
+      ## as required input didn't help either, so it's not likely to be am
+      ## I/O conflict
       # pic = expand(
       #   [hic_data_path + "/hic_results/pic/{sample}/plot{file}_{sample}.pdf"],
       #   sample = samples,
