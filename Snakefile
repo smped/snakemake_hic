@@ -51,16 +51,17 @@ ref_fagz = build + "." + assembly + ".fa.gz"
 ## Define all the required outputs from the setup steps ##
 ##########################################################
 
-## Directories
-raw_path = "data/raw/fastq"
-trim_path = "data/trimmed/fastq"
-
+## Genome & index
 FAGZ = [os.path.join(ref_path, ref_fagz)]
 BOWTIEIDX = expand(
     [ref_path + "/bt2/{prefix}.{sub}.bt2"],
     prefix = build + "." + assembly,
     sub = ['1', '2', '3', '4', 'rev.1', 'rev.2']
 )
+
+## Directories for data
+raw_path = "data/raw/fastq"
+trim_path = "data/trimmed/fastq"
 FQC_OUTS = expand(
     ["data/{step}/FastQC/{sample}_{reads}_fastqc.{suffix}"],
     suffix = ['zip', 'html'],
@@ -85,26 +86,57 @@ ALL_OUTPUTS.extend(TRIM_OUTS)
 ## HiC-Pro outputs ##
 #####################
 hic_data_path = "data/hic"
+bowtie_data_path = os.path.join(hic_data_path, "bowtie_results")
 
 # Required annotations during setup for HiC-Pro
-chr_sizes = os.path.join(
-    "output", 
-    build,
-     build + ".chr_sizes.tsv"
-)
-rs_frags = os.path.join(
-    "output", 
-    build,
-    build + "_" + config['hicpro']['enzyme'] + "_fragment.bed"
+chr_sizes = os.path.abspath(
+    os.path.join(
+        "output", 
+        build,
+        build + ".chr_sizes.tsv"
     )
+)
+rs_frags = os.path.abspath(
+    os.path.join(
+        "output", 
+        build,
+        build + "_" + config['hicpro']['enzyme'] + "_fragment.bed"
+        )
+)
 REFS = [chr_sizes, rs_frags]
+ALL_OUTPUTS.extend(REFS)
 
 # Update the config file
 bins = re.split(r" ", config['hicpro']['bin_size'])
 hicpro_config = "config/hicpro-config.txt"
-# PROC_PAIRS = expand([hic_data_path + "/hic_results/data/{sample}/{sample}_" + build + "." + assembly + ".bwt2pairs.validPairs"],
-#                     sample = samples)
-# HIC_QC = expand([hic_data_path + "/hic_results/pic/{sample}"], sample = samples)
+ALL_OUTPUTS.extend([hicpro_config])
+
+# Get the mappings & QC
+BWT2_MAPPED = expand(
+    [bowtie_data_path + "/bwt2/{sample}{reads}_" + build + "." + assembly + "{suffix}"],
+    sample = list(df['path']),
+    reads = read_ext,
+    suffix = ['.bwt2merged.bam', '.mapstat']
+)
+HIC_QC = expand(
+    [hic_data_path + "/hic_results/pic/{sample}/plotMapping_{sample}.pdf"],
+    sample = samples
+    )
+HIC_PROC_BAM = expand(
+    [bowtie_data_path + "/bwt2/{sample_path}_{suffix}"],
+    suffix = build + "." + assembly + ".bwt2pairs.bam",
+    sample_path = df['path']
+)
+HIC_PROC_PAIRS = expand(
+    [hic_data_path + "/hic_results/data/{sample_path}_{meta}.{suffix}"],
+    meta = build + "." + assembly + ".bwt2pairs",
+    suffix = ['DEPairs', 'DumpPairs', 'FiltPairs', 'REPairs', 'RSstat', 'SCPairs', 'singlePairs', 'validPairs'],
+    sample_path = df['path']
+)
+ALL_OUTPUTS.extend([BWT2_MAPPED])
+ALL_OUTPUTS.extend([HIC_QC])
+ALL_OUTPUTS.extend([HIC_PROC_BAM, HIC_PROC_PAIRS])
+
 # VALID_PAIRS = expand([hic_data_path + "/hic_results/data/{sample}/{sample}_allValidPairs"],
 #                        sample = samples)
 # HIC_MAT = expand([hic_data_path + "/hic_results/matrix/{sample}/raw/{bin}/{sample}_{bin}.matrix"],
@@ -114,10 +146,6 @@ hicpro_config = "config/hicpro-config.txt"
 # MERGED_INT = expand([hic_data_path + "/hic_results/matrix/merged/raw/{bin}/merged_{bin}{suffix}"],
 #                     bin = bins, suffix = ['.matrix', '_abs.bed'])
 
-ALL_OUTPUTS.extend(REFS)
-ALL_OUTPUTS.extend([hicpro_config])
-# ALL_OUTPUTS.extend(PROC_PAIRS)
-# ALL_OUTPUTS.extend(HIC_QC)
 # ALL_OUTPUTS.extend(VALID_PAIRS)
 # ALL_OUTPUTS.extend(HIC_MAT)
 # ALL_OUTPUTS.extend(HIC_BED)

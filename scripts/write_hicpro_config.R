@@ -22,6 +22,7 @@ orig <- readLines(template)
 ## Modify & write the file
 orig %>%
   str_replace("^N_CPU.+", paste("N_CPU =", config$hicpro$ncpu)) %>%
+  str_replace("^SORT_RAM.+", paste("SORT_RAM =", config$hicpro$sort_ram)) %>%
   str_replace("^PAIR1_EXT.+", paste("PAIR1_EXT =", config$hicpro$pair1_ext)) %>%
   str_replace("^PAIR2_EXT.+", paste("PAIR2_EXT =", config$hicpro$pair2_ext)) %>%
   str_replace("^FORMAT.+", paste0("FORMAT = phred", config$hicpro$phred)) %>%
@@ -33,7 +34,7 @@ orig %>%
   ) %>%
   str_replace("^GENOME_SIZE.+", paste("GENOME_SIZE =", args[[2]])) %>%
   str_replace("^GENOME_FRAGMENT.+", paste("GENOME_FRAGMENT =", args[[3]])) %>%
-  str_replace("^LIGATION_SITE.+", paste("LIGATION_SITE =", config$hicpro$restriction_site)) %>%
+  str_replace("^LIGATION_SITE.+", paste("LIGATION_SITE =", config$hicpro$ligation_site)) %>%
   str_replace("^BIN_SIZE.+", paste("BIN_SIZE =", config$hicpro$bin_size)) %>%
   str_replace("^MATRIX_FORMAT.+", paste("MATRIX_FORMAT =", config$hicpro$matrix_format)) %>%
   writeLines(con = args[[5]])

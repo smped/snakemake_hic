@@ -27,12 +27,14 @@ trimming:
 # Settings for HicPro
 hicpro:
   ncpu: 10
+  sort_ram: 1000M
   pair1_ext: _R1
   pair2_ext: _R2
   enzyme: HindIII
   phred: 33
   min_mapq: 0
-  restriction_site: A^AGCTT
-  bin_size: 40000 100000
+  ligation_site: AAGCTAGCTT
+  restriction_site: A^GATCT
+  bin_size: 20000 40000 150000 500000 1000000
   matrix_format: upper
 

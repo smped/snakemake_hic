@@ -10,6 +10,7 @@ dependencies:
   - bx-python=0.8.8
   - pysam=0.15.4
   - cooler=0.8.6
+  - tbb=2020.2
 
   - r-base=3.6.3
   - r-ggplot2=3.1.1

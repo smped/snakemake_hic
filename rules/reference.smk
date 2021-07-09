@@ -1,5 +1,5 @@
 rule get_reference:
-    output: os.path.join(ref_path, ref_fagz)
+    output: protected(os.path.join(ref_path, ref_fagz))
     params:
         ftp = os.path.join(
             "ftp://ftp.ebi.ac.uk/pub/databases/gencode/Gencode_human",
@@ -52,7 +52,7 @@ rule bowtie2_index:
         """
 
 rule get_chrom_sizes:
-    output: temp(chr_sizes)
+    output: chr_sizes
     params:
         ftp = os.path.join(
             "ftp.ebi.ac.uk/pub/databases/ena/assembly",

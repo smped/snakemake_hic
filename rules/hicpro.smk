@@ -47,119 +47,136 @@ rule make_hicpro_config:
           {output}
         """
 
-# rule hicpro_mapping:
-#     input:
-#         config = hicpro_config,
-#         files = expand([trim_path + "/{{sample}}/{{sample}}{reads}{suffix}"],
-#                        suffix = suffix, reads = read_ext)
-#     output:
-#         bam = temp(
-#             expand(
-#                 ["data/hic/bowtie_results/bwt2/{{sample}}/{{sample}}{reads}_" + build + "." + assembly + ".bwt2merged.bam"],
-#                 reads = read_ext
-#             )
-#         ),
-#         glob = temp(
-#             expand(
-#                 [hic_data_path + "/bowtie_results/bwt2_global/{{sample}}/{{sample}}{reads}_" + build + "." + assembly + ".bwt2glob.{suffix}"],
-#                 reads = read_ext,
-#                 suffix = ['bam', 'unmap.fastq', 'unmap_trimmed.fastq']
-#             )
-#         ),
-#         local = temp(
-#             expand(
-#                 [hic_data_path + "/bowtie_results/bwt2_local/{{sample}}/{{sample}}{reads}_" + build + "." + assembly + ".bwt2glob.unmap_bwt2loc.bam"],
-#                 reads = read_ext
-#              )
-#         )
-#     params:
-#         indir = trim_path,
-#         outdir = hic_data_path
-#     log: "logs/hicpro/hicpro_mapping_{sample}.log"
-#     threads: config['hicpro']['ncpu']
-#     shell:
-#         """
-#         ######################################
-#         ## Specific to phoenix for now only ##
-#         ######################################
-#         ## Load modules
-#         module load HiC-Pro/2.9.0-foss-2016b
+rule hicpro_mapping:
+    input:
+        config = hicpro_config,
+        files = expand(
+          [trim_path + "/{sample_path}{read_ext}{suffix}"],
+          sample_path = df['path'],
+          read_ext = read_ext,
+          suffix = suffix
+        )
+    output:
+        bwt2 = temp(
+            expand(
+                ["{path}/{sample_path}{reads}_" + build + "." + assembly + "{suffix}"],
+                path = os.path.join(bowtie_data_path, "bwt2"),
+                sample_path = df['path'],
+                reads = read_ext,
+                suffix = ['.bwt2merged.bam', '.mapstat']
+            )
+        ),
+        bwt2_global = temp(
+          expand(
+            ["{path}/{sample_path}{reads}_{meta}.{suffix}"],
+            path = os.path.join(bowtie_data_path, "bwt2_global"),
+            sample_path = df['path'],
+            reads = read_ext,
+            meta = build + "." + assembly + ".bwt2glob",
+            suffix = ['bam', 'unmap.fastq']
+          )
+        ),
+        bwt2_local = temp(
+          expand(
+            ["{path}/{sample_path}{reads}_{meta}_{suffix}"],
+            path = os.path.join(bowtie_data_path, "bwt2_local"),
+            sample_path = df['path'],
+            reads = read_ext,
+            meta = build + "." + assembly + ".bwt2glob.unmap",
+            suffix = ['bwt2loc.bam', 'trimmed.fastq']
+          )
+        )
+    params:
+        outdir = hic_data_path,
+        indir = trim_path
+    threads: config['hicpro']['ncpu']
+    conda: "../envs/hicpro.yml"
+    shell:
+        """
+        ## Remove any existing data as leaving this here causes HicPro to
+        ## make an interactive request. Piping `yes` into HicPro may be the
+        ## source of some current problems
+        if [[ -d {params.outdir} ]]; then
+          rm -rf {params.outdir}
+        fi
 
-#         ## Remove any existing data as leaving this here causes HicPro to
-#         ## make an interactive request. Piping `yes` into HicPro may be the
-#         ## source of some current problems
-#         if [[ -d {params.outdir} ]]; then
-#           rm -rf {params.outdir}
-#         fi
+        ## Run HiC-pro
+        HiC-Pro \
+          -s mapping \
+          -c {input.config} \
+          -i {params.indir} \
+          -o {params.outdir} 
+        """
 
-#         ## Run HiC-pro
-#         HiC-Pro \
-#           -s mapping \
-#           -c {input.config} \
-#           -i {params.indir} \
-#           -o {params.outdir} &> {log}
-#         """
-
-# rule hicpro_proc:
-#     input:
-#         config = hicpro_config,
-#         files = expand(
-#                 [hic_data_path + "/bowtie_results/bwt2/{{sample}}/{{sample}}{reads}_" + build + "." + assembly + ".bwt2merged.bam"],
-#                 reads = read_ext
-#             )
-#     output:
-#         bam = temp(hic_data_path + "/bowtie_results/bwt2/{sample}/{sample}_" + build + "." + assembly + ".bwt2pairs.bam"),
-#         pairs = hic_data_path + "/hic_results/data/{sample}/{sample}_" + build + "." + assembly + ".bwt2pairs.validPairs"
-#     params:
-#         indir = hic_data_path + "/bowtie_results/bwt2",
-#         outdir = hic_data_path
-#     log: "logs/hicpro/hicpro_proc_{sample}.log"
-#     threads: config['hicpro']['ncpu']
-#     shell:
-#         """
-#         ######################################
-#         ## Specific to phoenix for now only ##
-#         ######################################
-#         ## Load modules
-#         module load HiC-Pro/2.9.0-foss-2016b
-
-#         ##Run HiC-pro responding to yes to any interactive requests
-#         HiC-Pro \
-#           -s proc_hic \
-#           -c {input.config} \
-#           -i {params.indir} \
-#           -o {params.outdir} &> {log}
-#         """
-
-# rule hicpro_qc:
-#     input:
-#         config = hicpro_config,
-#         files = expand(
-#                 [hic_data_path + "/bowtie_results/bwt2/{{sample}}/{{sample}}{reads}_" + build + "." + assembly + ".bwt2merged.bam"],
-#                 reads = read_ext
-#             )
-#     output:
-#         pic = directory(hic_data_path + "/hic_results/pic/{sample}")
-#     params:
-#         indir = hic_data_path + "/bowtie_results/bwt2",
-#         outdir = hic_data_path
-#     log: "logs/hicpro/hicpro_qc_{sample}.log"
-#     threads: config['hicpro']['ncpu']
-#     shell:
-#         """
-#         ######################################
-#         ## Specific to phoenix for now only ##
-#         ######################################
-#         ## Load modules
-#         module load HiC-Pro/2.9.0-foss-2016b
-
-#         ##Run HiC-pro responding to yes to any interactive requests
-#         HiC-Pro \
-#           -s quality_checks \
-#           -c {input.config} \
-#           -i {params.indir} \
-#           -o {params.outdir} &> {log}
-#         """
+rule hicpro_qc:
+    input:
+        config = hicpro_config,
+        bwt2 = expand(
+                ["{path}/{sample_path}{reads}_" + build + "." + assembly + "{suffix}"],
+                path = os.path.join(bowtie_data_path, "bwt2"),
+                sample_path = df['path'],
+                reads = read_ext,
+                suffix = ['.bwt2merged.bam', '.mapstat']
+            )
+    output:
+        expand(
+          [hic_data_path + "/hic_results/pic/{sample}/plotMapping_{sample}.pdf"],
+          sample = samples
+        )
+    params:
+        indir = os.path.join(bowtie_data_path, "bwt2"),
+        outdir = hic_data_path
+    threads: 1
+    conda: "../envs/hicpro.yml"
+    shell:
+        """
+        HiC-Pro \
+          -s quality_checks \
+          -c {input.config} \
+          -i {params.indir} \
+          -o {params.outdir} 
+        """
+        
+rule hicpro_proc:
+    input:
+        config = hicpro_config,
+        bwt2 = expand(
+                ["{path}/{sample_path}{reads}_" + build + "." + assembly + "{suffix}"],
+                path = os.path.join(bowtie_data_path, "bwt2"),
+                sample_path = df['path'],
+                reads = read_ext,
+                suffix = ['.bwt2merged.bam', '.mapstat']
+            )
+    output:
+        bam = temp(
+          expand(
+            [bowtie_data_path + "/bwt2/{sample_path}_{meta}.{suffix}"],
+            meta = build + "." + assembly + ".bwt2pairs",
+            suffix = ['bam', 'pairstat'],
+            sample_path = df['path']
+          )
+        ),
+        pairs = temp(
+           expand(
+             [hic_data_path + "/hic_results/data/{sample_path}_{meta}.{suffix}"],
+             meta = build + "." + assembly + ".bwt2pairs",
+             suffix = ['DEPairs', 'DumpPairs', 'FiltPairs', 'REPairs', 'RSstat', 'SCPairs', 'singlePairs', 'validPairs'],
+             sample_path = df['path']
+             )
+        )
+    params:
+        indir = os.path.join(bowtie_data_path, "bwt2"),
+        outdir = hic_data_path
+    threads: config['hicpro']['ncpu']
+    conda: "../envs/hicpro.yml"
+    shell:
+        """
+        HiC-Pro \
+          -s proc_hic \
+          -c {input.config} \
+          -i {params.indir} \
+          -o {params.outdir} 
+        """
 
 # rule hicpro_merge:
 #     input:
