@@ -133,9 +133,19 @@ HIC_PROC_PAIRS = expand(
     suffix = ['DEPairs', 'DumpPairs', 'FiltPairs', 'REPairs', 'RSstat', 'SCPairs', 'singlePairs', 'validPairs'],
     sample_path = df['path']
 )
+HIC_MERGE_PAIRS = expand(
+    [hic_data_path + "/hic_results/data/{sample}/{sample}.allValidPairs"],
+    sample = samples
+    )
+HIC_MERGE_STAT = expand(
+    [hic_data_path + "/hic_results/stats/{sample}/{sample}{suffix}"],
+    sample = samples,
+    suffix = ['.mRSstat', '.mpairstat', read_ext[0] + ".mmapstat", read_ext[1] + ".mmapstat", "_allValidPairs.mergestat"]
+    )
 ALL_OUTPUTS.extend([BWT2_MAPPED])
 ALL_OUTPUTS.extend([HIC_QC])
 ALL_OUTPUTS.extend([HIC_PROC_BAM, HIC_PROC_PAIRS])
+ALL_OUTPUTS.extend([HIC_MERGE_PAIRS, HIC_MERGE_STAT])
 
 # VALID_PAIRS = expand([hic_data_path + "/hic_results/data/{sample}/{sample}_allValidPairs"],
 #                        sample = samples)

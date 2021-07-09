@@ -157,12 +157,12 @@ rule hicpro_proc:
           )
         ),
         pairs = temp(
-           expand(
-             [hic_data_path + "/hic_results/data/{sample_path}_{meta}.{suffix}"],
-             meta = build + "." + assembly + ".bwt2pairs",
-             suffix = ['DEPairs', 'DumpPairs', 'FiltPairs', 'REPairs', 'RSstat', 'SCPairs', 'singlePairs', 'validPairs'],
-             sample_path = df['path']
-             )
+          expand(
+            [hic_data_path + "/hic_results/data/{sample_path}_{meta}.{suffix}"],
+            meta = build + "." + assembly + ".bwt2pairs",
+            suffix = ['DEPairs', 'DumpPairs', 'FiltPairs', 'REPairs', 'RSstat', 'SCPairs', 'singlePairs', 'validPairs'],
+            sample_path = df['path']
+            )
         )
     params:
         indir = os.path.join(bowtie_data_path, "bwt2"),
@@ -178,33 +178,42 @@ rule hicpro_proc:
           -o {params.outdir} 
         """
 
-# rule hicpro_merge:
-#     input:
-#         config = hicpro_config,
-#         files = hic_data_path + "/hic_results/data/{sample}/{sample}_" + build + "." + assembly + ".bwt2pairs.validPairs"
-#     output:
-#         pairs = hic_data_path + "/hic_results/data/{sample}/{sample}_allValidPairs",
-#         stat = hic_data_path + "/hic_results/data/{sample}/{sample}_allValidPairs.mergestat",
-#     params:
-#         indir = hic_data_path + "/hic_results/data",
-#         outdir = hic_data_path
-#     log: "logs/hicpro/hicpro_merge_{sample}.log"
-#     threads: config['hicpro']['ncpu']
-#     shell:
-#         """
-#         ######################################
-#         ## Specific to phoenix for now only ##
-#         ######################################
-#         ## Load modules
-#         module load HiC-Pro/2.9.0-foss-2016b
-
-#         ##Run HiC-pro responding to yes to any interactive requests
-#         HiC-Pro \
-#           -s merge_persample \
-#           -c {input.config} \
-#           -i {params.indir} \
-#           -o {params.outdir} &> {log}
-#         """
+rule hicpro_merge:
+    input:
+        config = hicpro_config,
+        files = expand(
+            [hic_data_path + "/hic_results/data/{sample_path}_{meta}.{suffix}"],
+            meta = build + "." + assembly + ".bwt2pairs",
+            suffix = ['DEPairs', 'DumpPairs', 'FiltPairs', 'REPairs', 'RSstat', 'SCPairs', 'singlePairs', 'validPairs'],
+            sample_path = df['path']
+            )
+    output:
+      pairs = temp(
+        expand(
+          [hic_data_path + "/hic_results/data/{sample}/{sample}.allValidPairs"],
+          sample = samples
+        )
+      ),
+      stat = temp(
+        expand(
+          [hic_data_path + "/hic_results/stats/{sample}/{sample}{suffix}"],
+          sample = samples,
+          suffix = ['.mRSstat', '.mpairstat', read_ext[0] + ".mmapstat", read_ext[1] + ".mmapstat", "_allValidPairs.mergestat"]
+        )
+      )
+    params:
+        indir = hic_data_path + "/hic_results/data",
+        outdir = hic_data_path
+    threads: config['hicpro']['ncpu']
+    conda: "../envs/hicpro.yml"
+    shell:
+        """
+        HiC-Pro \
+          -s merge_persample \
+          -c {input.config} \
+          -i {params.indir} \
+          -o {params.outdir} 
+        """
 
 # rule build_contact_maps:
 #     input:
