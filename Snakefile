@@ -142,17 +142,24 @@ HIC_MERGE_STAT = expand(
     sample = samples,
     suffix = ['.mRSstat', '.mpairstat', read_ext[0] + ".mmapstat", read_ext[1] + ".mmapstat", "_allValidPairs.mergestat"]
     )
+HIC_CONTACT_MAPS = expand(
+    [hic_data_path + "/hic_results/matrix/{sample}/raw/{bin}/{sample}_{bin}{suffix}"],
+    sample = samples,
+    bin = bins,
+    suffix = ['.matrix', '_abs.bed']
+    )
+HIC_CONTACT_PICS = expand(
+    [hic_data_path + "/hic_results/pic/{sample}/plot{file}_{sample}.pdf"],
+    sample = samples,
+    file = ['HiCContactRanges', 'HiCFragmentSize', 'HiCFragment', 'MappingPairing']
+    )
 ALL_OUTPUTS.extend([BWT2_MAPPED])
 ALL_OUTPUTS.extend([HIC_QC])
 ALL_OUTPUTS.extend([HIC_PROC_BAM, HIC_PROC_PAIRS])
 ALL_OUTPUTS.extend([HIC_MERGE_PAIRS, HIC_MERGE_STAT])
+ALL_OUTPUTS.extend([HIC_CONTACT_MAPS])
 
-# VALID_PAIRS = expand([hic_data_path + "/hic_results/data/{sample}/{sample}_allValidPairs"],
-#                        sample = samples)
-# HIC_MAT = expand([hic_data_path + "/hic_results/matrix/{sample}/raw/{bin}/{sample}_{bin}.matrix"],
-#                   sample = samples, bin = bins)
-# HIC_BED = expand([hic_data_path + "/hic_results/matrix/{sample}/raw/{bin}/{sample}_{bin}_abs.bed"],
-#                   sample = samples, bin = bins)
+
 # MERGED_INT = expand([hic_data_path + "/hic_results/matrix/merged/raw/{bin}/merged_{bin}{suffix}"],
 #                     bin = bins, suffix = ['.matrix', '_abs.bed'])
 
@@ -168,16 +175,6 @@ ALL_OUTPUTS.extend([HIC_MERGE_PAIRS, HIC_MERGE_STAT])
 # MAXHIC_INTERACTIONS = expand(["output/MaxHiC/merged/{bin}/{type}_interactions.txt.gz"],
 #                              bin = bins, type = ['cis', 'trans'])
 # ALL_OUTPUTS.extend(MAXHIC_INTERACTIONS)
-
-#################################
-## Detection of SuperEnhancers ##
-#################################
-# Additional Data for super-enhancers shold be in data/external/H3K27AC/bam
-# h3k27ac_dir = 'data/external/H3K27AC'
-# enh = ['T47D_H3K27Ac_E2', 'T47D_H3K27Ac_E2_DHT']
-# SE_OUT =  expand(["output/HOMER/{sample}/{file}.tsv"],
-#                  sample = enh, file = ['enhancers', 'superEnhancers'])
-# ALL_OUTPUTS.extend(SE_OUT)
 
 
 #####################

@@ -215,32 +215,41 @@ rule hicpro_merge:
           -o {params.outdir} 
         """
 
-# rule build_contact_maps:
-#     input:
-#         config = hicpro_config,
-#         pairs = hic_data_path + "/hic_results/data/{sample}/{sample}_allValidPairs"
-#     output:
-#         bed = expand([hic_data_path + "/hic_results/matrix/{{sample}}/raw/{bin}/{{sample}}_{bin}_abs.bed"],
-#                      bin = bins),
-#         mat = expand([hic_data_path + "/hic_results/matrix/{{sample}}/raw/{bin}/{{sample}}_{bin}.matrix"],
-#                      bin = bins)
-#     params:
-#         indir = hic_data_path + "/hic_results/data",
-#         outdir = hic_data_path
-#     log: "logs/hicpro/build_contact_maps_{sample}.log"
-#     threads: config['hicpro']['ncpu']
-#     shell:
-#         """
-#         ######################################
-#         ## Specific to phoenix for now only ##
-#         ######################################
-#         ## Load modules
-#         module load HiC-Pro/2.9.0-foss-2016b
-
-#         ##Run HiC-pro responding to yes to any interactive requests
-#         HiC-Pro \
-#           -s build_contact_maps \
-#           -c {input.config} \
-#           -i {params.indir} \
-#           -o {params.outdir} &> {log}
-#         """
+rule build_contact_maps:
+    input:
+        config = hicpro_config,
+        pairs = expand(
+          [hic_data_path + "/hic_results/data/{sample}/{sample}.allValidPairs"],
+          sample = samples
+        ),
+        qc_pics = expand(
+          [hic_data_path + "/hic_results/pic/{sample}/plotMapping_{sample}.pdf"],
+          sample = samples
+        )
+    output:
+      matrix = expand(
+        [hic_data_path + "/hic_results/matrix/{sample}/raw/{bin}/{sample}_{bin}{suffix}"],
+        sample = samples,
+        bin = bins,
+        suffix = ['.matrix', '_abs.bed']
+      )
+      ## Can't figure out why these don't get created when specified,
+      ## but do get created when not specified
+      # pic = expand(
+      #   [hic_data_path + "/hic_results/pic/{sample}/plot{file}_{sample}.pdf"],
+      #   sample = samples,
+      #   file = ['HiCContactRanges', 'HiCFragmentSize', 'HiCFragment', 'MappingPairing']
+      # )
+    params:
+        indir = hic_data_path + "/hic_results/data",
+        outdir = hic_data_path
+    threads: config['hicpro']['ncpu']
+    conda: "../envs/hicpro.yml"
+    shell:
+        """
+        HiC-Pro \
+          -s build_contact_maps \
+          -c {input.config} \
+          -i {params.indir} \
+          -o {params.outdir} 
+        """
