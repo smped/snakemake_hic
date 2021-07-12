@@ -160,7 +160,7 @@ rule hicpro_proc:
           expand(
             [hic_data_path + "/hic_results/data/{sample_path}_{meta}.{suffix}"],
             meta = build + "." + assembly + ".bwt2pairs",
-            suffix = ['DEPairs', 'DumpPairs', 'FiltPairs', 'REPairs', 'RSstat', 'SCPairs', 'singlePairs', 'validPairs'],
+            suffix = ['DEPairs', 'DumpPairs', 'FiltPairs', 'REPairs', 'RSstat', 'SCPairs', 'SinglePairs', 'validPairs'],
             sample_path = df['path']
             )
         )
@@ -184,7 +184,7 @@ rule hicpro_merge:
         files = expand(
             [hic_data_path + "/hic_results/data/{sample_path}_{meta}.{suffix}"],
             meta = build + "." + assembly + ".bwt2pairs",
-            suffix = ['DEPairs', 'DumpPairs', 'FiltPairs', 'REPairs', 'RSstat', 'SCPairs', 'singlePairs', 'validPairs'],
+            suffix = ['DEPairs', 'DumpPairs', 'FiltPairs', 'REPairs', 'RSstat', 'SCPairs', 'SinglePairs', 'validPairs'],
             sample_path = df['path']
             )
     output:

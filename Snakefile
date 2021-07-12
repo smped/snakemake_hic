@@ -40,12 +40,14 @@ read_ext = [config['hicpro']['pair1_ext'], config['hicpro']['pair2_ext']]
 build = config['ref']['build']
 genbank = config['ref']['genbank']
 gencode = str(config['ref']['gencode'])
-ref_path = os.path.join(
-    config['ref']['root'], 
-    "gencode-release-" + gencode,
-    build,
-    "dna"
+ref_path = os.path.abspath(
+    os.path.join(
+        config['ref']['root'], 
+        "gencode-release-" + gencode,
+        build,
+       "dna"
     )
+)
 # Key output files
 assembly = config['ref']['assembly'] + ".genome"
 ref_fa = build + "." + assembly + ".fa"
@@ -134,7 +136,7 @@ HIC_PROC_BAM = expand(
 HIC_PROC_PAIRS = expand(
     [hic_data_path + "/hic_results/data/{sample_path}_{meta}.{suffix}"],
     meta = build + "." + assembly + ".bwt2pairs",
-    suffix = ['DEPairs', 'DumpPairs', 'FiltPairs', 'REPairs', 'RSstat', 'SCPairs', 'singlePairs', 'validPairs'],
+    suffix = ['DEPairs', 'DumpPairs', 'FiltPairs', 'REPairs', 'RSstat', 'SCPairs', 'SinglePairs', 'validPairs'],
     sample_path = df['path']
 )
 HIC_MERGE_PAIRS = expand(
