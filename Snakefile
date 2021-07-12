@@ -11,8 +11,7 @@ configfile: "config/config.yml"
 # Get the path if installed
 hic_path = subprocess.run(
     ['which', 'HiC-Pro'], 
-    check=True, text=True, 
-    stdout=subprocess.PIPE).stdout
+    check=True, stdout=subprocess.PIPE).stdout
 rc = hic_path.returncode
 if not rc == 0:
     print("HiC-Pro not installed")
