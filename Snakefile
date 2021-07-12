@@ -11,7 +11,10 @@ configfile: "config/config.yml"
 # Get the path if installed
 hic_check = subprocess.run(
     ['which', 'HiC-Pro'], 
-    check=True, stdout=subprocess.PIPE)
+    universal_newlines=True,
+    check=True,
+    stdout=subprocess.PIPE
+)
 hic_path = hic_check.stdout
 rc = hic_check.returncode
 if not rc == 0:
