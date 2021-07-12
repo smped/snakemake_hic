@@ -9,10 +9,11 @@ configfile: "config/config.yml"
 ## Check that HiC-Pro is installed ##
 #####################################
 # Get the path if installed
-hic_path = subprocess.run(
+hic_check = subprocess.run(
     ['which', 'HiC-Pro'], 
-    check=True, stdout=subprocess.PIPE).stdout
-rc = hic_path.returncode
+    check=True, stdout=subprocess.PIPE)
+hic_path = hic_check.stdout
+rc = hic_check.returncode
 if not rc == 0:
     print("HiC-Pro not installed")
     sys.exit(1)
