@@ -10,7 +10,7 @@ ref:
   genbank: GCA_000001405.1
   gencode: 33
   assembly: primary_assembly
-  root: /mnt/d/refs
+  root: ../refs
 
 # Given we only have 50nt reads, don't group during fastqc
 fastqc:
