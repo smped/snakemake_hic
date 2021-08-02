@@ -32,8 +32,8 @@ This workflow is built around v3.0.0
 Create the rulegraph to check everything is as expected
 
 ```
-snakemake --rulegraph > .snakemake/rulegraph.dot
-dot -Tpdf .snakemake/rulegraph.dot > .snakemake/rulegraph.pdf
+snakemake --rulegraph > rules/rulegraph.dot
+dot -Tpdf rules/rulegraph.dot > rules/rulegraph.pdf
 ```
 
 ## Execution
