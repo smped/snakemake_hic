@@ -122,7 +122,7 @@ HIC_MERGE_PAIRS = expand(
 HIC_MERGE_STAT = expand(
     [hic_data_path + "/hic_results/stats/{sample}/{sample}{suffix}"],
     sample = samples,
-    suffix = ['.mRSstat', '.mpairstat', read_ext[0] + ".mmapstat", read_ext[1] + ".mmapstat", "_allValidPairs.mergestat"]
+    suffix = ['.mRSstat', read_ext[0] + ".mmapstat", read_ext[1] + ".mmapstat", "_allValidPairs.mergestat"]
     )
 HIC_CONTACT_MAPS = expand(
     [hic_data_path + "/hic_results/matrix/{sample}/raw/{bin}/{sample}_{bin}{suffix}"],
