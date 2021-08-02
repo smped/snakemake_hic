@@ -1,7 +1,7 @@
 rule find_rs_fragments:
     input: rules.unzip_reference.output
     output:
-        rs = rs_frags
+        rs = temp(rs_frags)
     params:
         restriction_site = config['hicpro']['restriction_site'],
         script = os.path.join(
@@ -20,9 +20,24 @@ rule find_rs_fragments:
           {input}
         """
 
+rule zip_fragment_bedfile:
+    input: rules.find_rs_fragments.output.rs
+    output: rs_frags + ".gz"
+    threads: 1
+    shell:
+        """
+        gzip -c {input} > {output}
+        """
+
 rule make_hicpro_config:
     input:
-        idx = os.path.dirname(rules.bowtie2_index.output[0]),
+        idx = ancient(
+          expand(
+            [ref_path + "/bt2/{prefix}.{sub}.bt2"],
+            prefix = build + "." + assembly,
+            sub = ['1', '2', '3', '4', 'rev.1', 'rev.2']
+          )
+        ),
         rs = rs_frags,
         chr_sizes = chr_sizes
     output:
@@ -33,6 +48,9 @@ rule make_hicpro_config:
             os.path.dirname(hic_path)
           ), 
           "config-hicpro.txt"
+        ),
+        idx_root = os.path.join(
+          ref_path, "bt2"
         )
     conda: "../envs/stringr.yml"
     threads: 1
@@ -40,7 +58,7 @@ rule make_hicpro_config:
         """
         Rscript --vanilla \
           scripts/write_hicpro_config.R \
-          {input.idx} \
+          {params.idx_root} \
           {input.chr_sizes} \
           {input.rs} \
           {params.template} \
@@ -55,6 +73,13 @@ rule hicpro_mapping:
           sample_path = df['path'],
           read_ext = read_ext,
           suffix = suffix
+        ),
+        idx = ancient(
+          expand(
+            [ref_path + "/bt2/{prefix}.{sub}.bt2"],
+            prefix = build + "." + assembly,
+            sub = ['1', '2', '3', '4', 'rev.1', 'rev.2']
+          )
         )
     output:
         bwt2 = temp(
@@ -198,7 +223,7 @@ rule hicpro_merge:
         expand(
           [hic_data_path + "/hic_results/stats/{sample}/{sample}{suffix}"],
           sample = samples,
-          suffix = ['.mRSstat', '.mpairstat', read_ext[0] + ".mmapstat", read_ext[1] + ".mmapstat", "_allValidPairs.mergestat"]
+          suffix = ['.mRSstat', read_ext[0] + ".mmapstat", read_ext[1] + ".mmapstat", "_allValidPairs.mergestat"]
         )
       )
     params:
