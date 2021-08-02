@@ -57,13 +57,11 @@ ref_fagz = build + "." + assembly + ".fa.gz"
 ## Define all the required outputs from the setup steps ##
 ##########################################################
 
+ALL_OUTPUTS = []
+
 ## Genome & index
 FAGZ = [os.path.join(ref_path, ref_fagz)]
-BOWTIEIDX = expand(
-    [ref_path + "/bt2/{prefix}.{sub}.bt2"],
-    prefix = build + "." + assembly,
-    sub = ['1', '2', '3', '4', 'rev.1', 'rev.2']
-)
+ALL_OUTPUTS.extend(FAGZ)
 
 ## Directories for data
 raw_path = "data/raw/fastq"
@@ -81,10 +79,6 @@ TRIM_OUTS = expand(
     suffix = suffix,
     reads = ['R1', 'R2']
 )
-
-ALL_OUTPUTS = []
-ALL_OUTPUTS.extend([BOWTIEIDX])
-ALL_OUTPUTS.extend(FAGZ)
 ALL_OUTPUTS.extend(FQC_OUTS)
 ALL_OUTPUTS.extend(TRIM_OUTS)
 
@@ -109,8 +103,7 @@ rs_frags = os.path.abspath(
         build + "_" + config['hicpro']['enzyme'] + "_fragment.bed"
         )
 )
-REFS = [chr_sizes, rs_frags]
-ALL_OUTPUTS.extend(REFS)
+ALL_OUTPUTS.extend([rs_frags + ".gz"])
 
 # Update the config file
 bins = re.split(r" ", config['hicpro']['bin_size'])
@@ -118,27 +111,10 @@ hicpro_config = "config/hicpro-config.txt"
 ALL_OUTPUTS.extend([hicpro_config])
 
 # Get the mappings & QC
-BWT2_MAPPED = expand(
-    [bowtie_data_path + "/bwt2/{sample}{reads}_" + build + "." + assembly + "{suffix}"],
-    sample = list(df['path']),
-    reads = read_ext,
-    suffix = ['.bwt2merged.bam', '.mapstat']
-)
 HIC_QC = expand(
     [hic_data_path + "/hic_results/pic/{sample}/plotMapping_{sample}.pdf"],
     sample = samples
     )
-HIC_PROC_BAM = expand(
-    [bowtie_data_path + "/bwt2/{sample_path}_{suffix}"],
-    suffix = build + "." + assembly + ".bwt2pairs.bam",
-    sample_path = df['path']
-)
-HIC_PROC_PAIRS = expand(
-    [hic_data_path + "/hic_results/data/{sample_path}_{meta}.{suffix}"],
-    meta = build + "." + assembly + ".bwt2pairs",
-    suffix = ['DEPairs', 'DumpPairs', 'FiltPairs', 'REPairs', 'RSstat', 'SCPairs', 'SinglePairs', 'validPairs'],
-    sample_path = df['path']
-)
 HIC_MERGE_PAIRS = expand(
     [hic_data_path + "/hic_results/data/{sample}/{sample}.allValidPairs"],
     sample = samples
@@ -159,28 +135,27 @@ HIC_CONTACT_PICS = expand(
     sample = samples,
     file = ['HiCContactRanges', 'HiCFragmentSize', 'HiCFragment', 'MappingPairing']
     )
-ALL_OUTPUTS.extend([BWT2_MAPPED])
 ALL_OUTPUTS.extend([HIC_QC])
-ALL_OUTPUTS.extend([HIC_PROC_BAM, HIC_PROC_PAIRS])
 ALL_OUTPUTS.extend([HIC_MERGE_PAIRS, HIC_MERGE_STAT])
 ALL_OUTPUTS.extend([HIC_CONTACT_MAPS])
 
-
-# MERGED_INT = expand([hic_data_path + "/hic_results/matrix/merged/raw/{bin}/merged_{bin}{suffix}"],
-#                     bin = bins, suffix = ['.matrix', '_abs.bed'])
-
-# ALL_OUTPUTS.extend(VALID_PAIRS)
-# ALL_OUTPUTS.extend(HIC_MAT)
-# ALL_OUTPUTS.extend(HIC_BED)
-# ALL_OUTPUTS.extend(MERGED_INT)
+## Merge the interaction matrices
+MERGED_INT = expand(
+    [hic_data_path + "/hic_results/matrix/merged/raw/{bin}/merged_{bin}{suffix}"],
+    bin = bins,
+    suffix = ['.matrix', '_abs.bed']
+    )
+ALL_OUTPUTS.extend(MERGED_INT)
 
 
 #####################
 ## Max HiC Outputs ##
 #####################
-# MAXHIC_INTERACTIONS = expand(["output/MaxHiC/merged/{bin}/{type}_interactions.txt.gz"],
-#                              bin = bins, type = ['cis', 'trans'])
-# ALL_OUTPUTS.extend(MAXHIC_INTERACTIONS)
+MAXHIC_INTERACTIONS = expand(
+    ["output/MaxHiC/merged/{bin}/{type}_interactions.txt.gz"],
+    bin = bins, type = ['cis', 'trans']
+    )
+ALL_OUTPUTS.extend(MAXHIC_INTERACTIONS)
 
 
 #####################
@@ -195,6 +170,5 @@ include: "rules/reference.smk"
 include: "rules/qc.smk"
 include: "rules/trimming.smk"
 include: "rules/hicpro.smk"
-# include: "rules/merge_matrices.smk"
-# include: "rules/maxhic.smk"
-
+include: "rules/merge_matrices.smk"
+include: "rules/maxhic.smk"

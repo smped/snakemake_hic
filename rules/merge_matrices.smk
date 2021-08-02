@@ -1,27 +1,30 @@
 rule merge_interaction_matrices:
     input:
-        mat=expand(
+        mat = expand(
           hic_data_path + "/hic_results/matrix/{sample}/raw/{{bin}}/{sample}_{{bin}}.matrix",
           sample = samples
         ),
-        bed=expand(
+        bed = expand(
           hic_data_path + "/hic_results/matrix/{sample}/raw/{{bin}}/{sample}_{{bin}}_abs.bed",
           sample = samples
         )
     output:
         mat = hic_data_path + "/hic_results/matrix/merged/raw/{bin}/merged_{bin}.matrix",
         bed = hic_data_path + "/hic_results/matrix/merged/raw/{bin}/merged_{bin}_abs.bed"
-    conda: "../envs/rtracklayer.yml"
+    params:
+        samples = samples,
+        bin = "{bin}",
+        in_path = hic_data_path + "/hic_results/matrix/",
+        out_path = hic_data_path + "/hic_results/matrix/merged/raw/"
+    conda: "../envs/merge_matrices.yml"
     log: "logs/merge/merge_{bin}.log"
-    threads: 4
+    threads: 6
     shell:
         """
         Rscript --vanilla \
           scripts/merge_matrices.R \
-          {input.mat[0]} \
-          {input.mat[1]} \
-          {input.bed[0]} \
-          {input.bed[1]} \
-          {output.mat} \
-          {output.bed} &> {log}
+          {params.bin} \
+          {params.in_path} \
+          {params.out_path} \
+          {params.samples} &> {log}
         """
