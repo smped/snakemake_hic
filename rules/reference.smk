@@ -18,7 +18,7 @@ rule get_reference:
         """
 
 rule unzip_reference:
-    input: rules.get_reference.output
+    input: ancient(os.path.join(ref_path, ref_fagz))
     output: temp(os.path.join(ref_path, ref_fa))
     threads: 1
     shell:
@@ -27,7 +27,7 @@ rule unzip_reference:
         """
 
 rule bowtie2_index:
-    input: rules.unzip_reference.output
+    input: ancient(os.path.join(ref_path, ref_fa))
     output:
         expand(
             [ref_path + "/bt2/{prefix}.{sub}.bt2"],
