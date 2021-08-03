@@ -18,27 +18,18 @@ rule run_maxhic:
     input:
         maxhic_exe = ancient(rules.get_maxhic.output.exe),
         mat = os.path.join(
-            hic_data_path,
-            "hic_results", "matrix", "merged", "raw", "{bin}",
-            "merged_" + "{bin}" + ".matrix"
+            hic_output_path, "matrix", "raw", "{bin}", "merged_{bin}.matrix"
         ),
         bed = os.path.join(
-            hic_data_path,
-            "hic_results", "matrix", "merged", "raw", "{bin}",
-            "merged_" + "{bin}" + "_abs.bed"
+            hic_output_path, "matrix", "raw", "{bin}", "merged_{bin}_abs.bed"
         )
     output:
-        cis = "output/MaxHiC/merged/{bin}/cis_interactions.txt.gz",
-        trans = "output/MaxHiC/merged/{bin}/trans_interactions.txt.gz",
-        model_params = directory("output/MaxHiC/merged/{bin}/ModelParameters")
+        cis = "output/MaxHiC/{bin}/cis_interactions.txt.gz",
+        trans = "output/MaxHiC/{bin}/trans_interactions.txt.gz",
+        model_params = directory("output/MaxHiC/{bin}/ModelParameters")
     params:
-        input_path = os.path.join(
-            hic_data_path,
-            "hic_results", "matrix", "merged", "raw", "{bin}"
-        ),
-        output_path = os.path.join(
-            "output", "MaxHiC", "merged", "{bin}"
-        )
+        input_path = os.path.join(hic_output_path, "matrix", "raw", "{bin}"),
+        output_path = os.path.join("output", "MaxHiC", "{bin}")
     conda: "../envs/maxhic.yml"
     log: "logs/MaxHiC/merged_{bin}_MaxHiC.log"
     threads: 16

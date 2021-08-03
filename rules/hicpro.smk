@@ -144,9 +144,16 @@ rule hicpro_qc:
                 suffix = ['.bwt2merged.bam', '.mapstat']
             )
     output:
-        expand(
-          [hic_data_path + "/hic_results/pic/{sample}/plotMapping_{sample}.pdf"],
-          sample = samples
+        temp(
+          expand(
+            [
+              os.path.join(
+                hic_data_path, "hic_results", "pic", "{sample}",
+                "plotMapping_{sample}.pdf"
+              )
+            ],
+            sample = samples
+          )
         )
     params:
         indir = os.path.join(bowtie_data_path, "bwt2"),
@@ -219,9 +226,16 @@ rule hicpro_merge:
           sample = samples
         )
       ),
+      ## *.mpairstat files are created when not specified, but not created
+      ## when specified. Currently excluded from required output
       stat = temp(
         expand(
-          [hic_data_path + "/hic_results/stats/{sample}/{sample}{suffix}"],
+          [
+            os.path.join(
+              hic_data_path, "hic_results", "stats", "{sample}",
+              "{sample}{suffix}"
+            )
+          ],
           sample = samples,
           suffix = ['.mRSstat', read_ext[0] + ".mmapstat", read_ext[1] + ".mmapstat", "_allValidPairs.mergestat"]
         )
@@ -248,15 +262,22 @@ rule build_contact_maps:
           sample = samples
         )
     output:
-      matrix = expand(
-        [hic_data_path + "/hic_results/matrix/{sample}/raw/{bin}/{sample}_{bin}{suffix}"],
-        sample = samples,
-        bin = bins,
-        suffix = ['.matrix', '_abs.bed']
+      matrix = temp(
+          expand(
+            [
+              os.path.join(
+                hic_data_path, "hic_results", "matrix", "{sample}", "raw",
+                "{bin}", "{sample}_{bin}{suffix}"
+              )
+            ],
+          sample = samples,
+          bin = bins,
+          suffix = ['.matrix', '_abs.bed']
+        )
       )
       ## Can't figure out why these don't get created when specified,
       ## but do get created when not specified. Placing the output from qc
-      ## as required input didn't help either, so it's not likely to be am
+      ## as required input didn't help either, so it's not likely to be an
       ## I/O conflict
       # pic = expand(
       #   [hic_data_path + "/hic_results/pic/{sample}/plot{file}_{sample}.pdf"],
