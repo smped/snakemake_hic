@@ -59,15 +59,15 @@ This workflow simply aims to identify *significant interactions* (above backgrou
 
 ## Workflow
 
-```{r plot_workflow, fig.height = 8, fig.width = 10, fig.cap = "*Summary of processing workflow. The primary data pipeline is shown in red, with QC/reporting steps shown in orange. Preparatory steps are shown in blue whilst collation of final output is in green.*"}
+```{r plot_workflow, fig.height = 10, fig.width = 10, fig.cap = "*Summary of processing workflow. The primary data pipeline is shown in red, with QC/reporting steps shown in orange. Preparatory steps are shown in blue whilst collation of final output is in green.*"}
 here::here("rules/rulegraph.dot") %>%
   readLines() %>%
   rm_dot_node(node = "\"all\"") %>%
   add_input_node(node = "RAW DATA", col = "red", ignore = "(get|build|make|install|initialise)") %>%
   change_node_colour("(hicpro|contact|adapter|merge|run)_", "red") %>% 
-  change_node_colour("collect|compress|zip|define", "forestgreen") %>% 
+  change_node_colour("collect|compress|zip|define|extract", "forestgreen") %>% 
   change_node_colour("(reference|index|chrom_sizes|install_maxhic|find|config|initialise)", "blue") %>% 
-  change_node_colour("qc|stats|lengths|rulegraph|site|pics|convert|extract|summarise", "orange") %>% 
+  change_node_colour("qc|stats|lengths|rulegraph|site|pics|convert|summarise", "orange") %>% 
   str_replace_all("_", "\n") %>% 
   str_replace_all("snakemake\ndag", "snakemake_dag") %>%
   str_replace_all("fontsize=[0-9]+", "fontsize=16") %>%
