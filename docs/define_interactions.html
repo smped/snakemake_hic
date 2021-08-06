@@ -493,16 +493,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictreeabd2d21062ab2d5cf91b8244ef423f329dc1f56atargetblankabd2d21a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/steveped/snakemake_hic/tree/abd2d21062ab2d5cf91b8244ef423f329dc1f56a" target="_blank">abd2d21</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictreea90e5d057ea7e1163d65cda4343981f22bca25adtargetblanka90e5d0a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/steveped/snakemake_hic/tree/a90e5d057ea7e1163d65cda4343981f22bca25ad" target="_blank">a90e5d0</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictreeabd2d21062ab2d5cf91b8244ef423f329dc1f56atargetblankabd2d21a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictreea90e5d057ea7e1163d65cda4343981f22bca25adtargetblanka90e5d0a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/steveped/snakemake_hic/tree/abd2d21062ab2d5cf91b8244ef423f329dc1f56a" target="_blank">abd2d21</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/steveped/snakemake_hic/tree/a90e5d057ea7e1163d65cda4343981f22bca25ad" target="_blank">a90e5d0</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -568,6 +568,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/steveped/snakemake_hic/blob/a90e5d057ea7e1163d65cda4343981f22bca25ad/analysis/define_interactions.Rmd" target="_blank">a90e5d0</a>
+</td>
+<td>
+Steve Pederson
+</td>
+<td>
+2021-08-06
+</td>
+<td>
+Updated all
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/steveped/snakemake_hic/a90e5d057ea7e1163d65cda4343981f22bca25ad/docs/define_interactions.html" target="_blank">a90e5d0</a>
+</td>
+<td>
+Steve Pederson
+</td>
+<td>
+2021-08-06
+</td>
+<td>
+Updated all
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -678,30 +712,28 @@ alpha &lt;- 0.05</code></pre>
     
   }
 
-   ## Some plots
-    cat(&quot;### Interaction Summary\n\n&quot;)
-    a &lt;- gi %&gt;%
-      anchors(&quot;first&quot;) %&gt;%
-      seqnames() %&gt;%
-      table() %&gt;%
-      enframe(
-        name = &quot;chr&quot;,
-        value = &quot;count&quot;
-      ) %&gt;%
-      mutate(
-        chr = str_remove_all(chr, &quot;chr&quot;),
-        chr = fct_inorder(chr),
-        count = as.integer(count)
-      ) %&gt;%
-      ggplot(
-        aes(chr, count)
-      ) +
-      geom_col() +
-      labs(
-        x = &quot;Chromosome&quot;,
-        y = glue(&quot;Total Significant Cis Interactions ({sz/1e3}kb bins)&quot;)
-      ) +
-      scale_y_continuous(expand = expansion(c(0, 0.05)), labels = comma)
+  ## Some plots
+  cat(&quot;\n### Interaction Summary\n\n&quot;)
+  a &lt;- gi %&gt;%
+    anchors(&quot;first&quot;) %&gt;%
+    seqnames() %&gt;%
+    table() %&gt;%
+    enframe(
+      name = &quot;chr&quot;,
+      value = &quot;count&quot;
+    ) %&gt;%
+    mutate(
+      chr = str_remove_all(chr, &quot;chr&quot;),
+      chr = fct_inorder(chr),
+      count = as.integer(count)
+    ) %&gt;%
+    ggplot(aes(chr, count)) +
+    geom_col() +
+    labs(
+      x = &quot;Chromosome&quot;,
+      y = glue(&quot;Total Significant Cis Interactions ({sz/1e3}kb bins)&quot;)
+    ) +
+    scale_y_continuous(expand = expansion(c(0, 0.05)), labels = comma)
   b &lt;- gi %&gt;%
     anchors(&quot;first&quot;) %&gt;%
     seqnames() %&gt;%
@@ -735,9 +767,17 @@ alpha &lt;- 0.05</code></pre>
     ) +
     scale_y_continuous(expand = expansion(c(0, 0.05)))
   plot_grid(a, b, labels = c(&quot;A&quot;, &quot;B&quot;))
+  ggsave(
+    here::here(&quot;docs/assets&quot;, glue(&quot;interaction_summary_{sz}.png&quot;)),
+    width = 8, height = 5
+  )
+  cat(
+    glue(&quot;![](assets/interaction_summary_{sz}.png})&quot;),
+    &quot;\n&quot;
+  )
   cat(&quot;\n\n&quot;)
 
-  cat(&quot;### Interaction Distances\n\n&quot;)
+  cat(&quot;\n### Interaction Distances\n\n&quot;)
   a &lt;- mcols(gi) %&gt;% 
     as.data.frame %&gt;% 
     ggplot(aes(distance/1e3, counts)) + 
@@ -790,7 +830,9 @@ alpha &lt;- 0.05</code></pre>
 <pre><code>## 20kb Bins {.tabset}
 
 - 0 bin-pair interactions were retained. This represented 0.00% of all interactions detected in the dataset. 
-### Interaction Summary
+
+### Interaction Summary</code></pre>
+<pre><code>![](assets/interaction_summary_20000.png}) 
 
 
 
@@ -799,7 +841,9 @@ alpha &lt;- 0.05</code></pre>
 ## 40kb Bins {.tabset}
 
 - 0 bin-pair interactions were retained. This represented 0.00% of all interactions detected in the dataset. 
-### Interaction Summary
+
+### Interaction Summary</code></pre>
+<pre><code>![](assets/interaction_summary_40000.png}) 
 
 
 

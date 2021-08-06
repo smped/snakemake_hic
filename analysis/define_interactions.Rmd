@@ -127,30 +127,28 @@ for (sz in bin_sizes) {
     
   }
 
-   ## Some plots
-    cat("### Interaction Summary\n\n")
-    a <- gi %>%
-      anchors("first") %>%
-      seqnames() %>%
-      table() %>%
-      enframe(
-        name = "chr",
-        value = "count"
-      ) %>%
-      mutate(
-        chr = str_remove_all(chr, "chr"),
-        chr = fct_inorder(chr),
-        count = as.integer(count)
-      ) %>%
-      ggplot(
-        aes(chr, count)
-      ) +
-      geom_col() +
-      labs(
-        x = "Chromosome",
-        y = glue("Total Significant Cis Interactions ({sz/1e3}kb bins)")
-      ) +
-      scale_y_continuous(expand = expansion(c(0, 0.05)), labels = comma)
+  ## Some plots
+  cat("\n### Interaction Summary\n\n")
+  a <- gi %>%
+    anchors("first") %>%
+    seqnames() %>%
+    table() %>%
+    enframe(
+      name = "chr",
+      value = "count"
+    ) %>%
+    mutate(
+      chr = str_remove_all(chr, "chr"),
+      chr = fct_inorder(chr),
+      count = as.integer(count)
+    ) %>%
+    ggplot(aes(chr, count)) +
+    geom_col() +
+    labs(
+      x = "Chromosome",
+      y = glue("Total Significant Cis Interactions ({sz/1e3}kb bins)")
+    ) +
+    scale_y_continuous(expand = expansion(c(0, 0.05)), labels = comma)
   b <- gi %>%
     anchors("first") %>%
     seqnames() %>%
@@ -184,9 +182,17 @@ for (sz in bin_sizes) {
     ) +
     scale_y_continuous(expand = expansion(c(0, 0.05)))
   plot_grid(a, b, labels = c("A", "B"))
+  ggsave(
+    here::here("docs/assets", glue("interaction_summary_{sz}.png")),
+    width = 8, height = 5
+  )
+  cat(
+    glue("![](assets/interaction_summary_{sz}.png})"),
+    "\n"
+  )
   cat("\n\n")
 
-  cat("### Interaction Distances\n\n")
+  cat("\n### Interaction Distances\n\n")
   a <- mcols(gi) %>% 
     as.data.frame %>% 
     ggplot(aes(distance/1e3, counts)) + 
