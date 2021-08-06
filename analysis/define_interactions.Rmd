@@ -187,7 +187,7 @@ for (sz in bin_sizes) {
     width = 8, height = 5
   )
   cat(
-    glue("![](assets/interaction_summary_{sz}.png})"),
+    glue("![Interactions by chromosome](assets/interaction_summary_{sz}.png)"),
     "\n"
   )
   cat("\n\n")
