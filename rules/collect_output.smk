@@ -84,3 +84,22 @@ rule convert_fragment_size_plot:
             -quality {params.quality} \
             {output.png}
         """
+
+rule extract_significant_interactions:
+    input:
+        cis = "output/MaxHiC/{bin}/cis_interactions.txt.gz",
+        trans = "output/MaxHiC/{bin}/trans_interactions.txt.gz",
+        script = "scripts/extract_sig_interactions.R"
+    output:
+        cis = "output/MaxHiC/gi_{bin}_cis.rds",
+        trans = "output/MaxHiC/gi_{bin}_trans.rds"
+    params: bin = "{bin}"
+    threads: 4
+    conda: "../envs/workflowr.yml"
+    log: "logs/MaxHiC/extract_sign_interactions_{bin}.log"
+    shell:
+        """
+        Rscript --vanilla \
+          {input.script} \
+          {params.bin} &> {log}
+        """

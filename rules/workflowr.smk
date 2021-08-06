@@ -118,24 +118,13 @@ rule build_hic_qc_report:
         R -e "workflowr::wflow_build('{input.rmd}')" 2>&1 > {log}
         """
 
-rule define_significant_interactions:
+rule summarise_significant_interactions:
     input:
         rproj = rproj,
         interactions = expand(
-            [
-                os.path.join(
-                    "output", "MaxHiC", "{bin}", "cis_interactions.txt.gz"
-                )
-            ],
-            bin = bins
-        ),
-        bed = expand(
-            [
-                os.path.join(
-                    hic_output_path, "matrix", "merged_{bin}_abs.bed.gz"
-                )
-            ],
-            bin = bins
+            [os.path.join("output", "MaxHiC", "gi_{bin}_{type}.rds")],
+            bin = bins,
+            type = ['cis', 'trans']
         ),
         config_yml = "config/config.yml",
         site_yml = "analysis/_site.yml",            
@@ -146,7 +135,7 @@ rule define_significant_interactions:
         "../envs/workflowr.yml"
     log:
         "logs/workflowr/define_interactions.log"
-    threads: 8
+    threads: 4
     shell:
         """
         R -e "workflowr::wflow_build('{input.rmd}')" 2>&1 > {log}

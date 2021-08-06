@@ -35,6 +35,6 @@ hicpro:
   min_mapq: 0
   ligation_site: AAGCTAGCTT
   restriction_site: A^GATCT
-  bin_size: 20000 40000 150000 500000 1000000
+  bin_size: 20000 40000
   matrix_format: upper
 

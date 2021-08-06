@@ -145,11 +145,16 @@ ALL_OUTPUTS.extend(
 #####################
 ## Max HiC Outputs ##
 #####################
-# MAXHIC_INTERACTIONS = expand(
-#     ["output/MaxHiC/{bin}/{type}_interactions.txt.gz"],
-#     bin = bins, type = ['cis', 'trans']
-#     )
-# ALL_OUTPUTS.extend(MAXHIC_INTERACTIONS)
+MAXHIC_INTERACTIONS = expand(
+    ["output/MaxHiC/{bin}/{type}_interactions.txt.gz"],
+    bin = bins, type = ['cis', 'trans']
+    )
+SIG_INTERACTIONS = expand(
+    ["output/MaxHiC/gi_{bin}_{type}.rds"],
+    type = ['cis', 'trans'],
+    bin = bins
+)
+ALL_OUTPUTS.extend([MAXHIC_INTERACTIONS, SIG_INTERACTIONS])
 
 
 ##########################
@@ -157,12 +162,12 @@ ALL_OUTPUTS.extend(
 ##########################
 wd = os.getcwd()
 rproj = os.path.basename(wd) + ".Rproj"
-# WFLOW_OUT = expand(
-#     ["docs/{file}.html"],
-#     file = ['index', 'qc_raw', 'qc_trimmed', 'qc_hic', 'define_interactions']
-# )
-# ALL_OUTPUTS.extend([rproj])
-# ALL_OUTPUTS.extend(WFLOW_OUT)
+WFLOW_OUT = expand(
+    ["docs/{file}.html"],
+    file = ['index', 'qc_raw', 'qc_trimmed', 'qc_hic', 'define_interactions']
+)
+ALL_OUTPUTS.extend([rproj])
+ALL_OUTPUTS.extend(WFLOW_OUT)
 
 #####################
 ## Rules & Outputs ##

@@ -7,11 +7,7 @@ rule install_maxhic:
     threads: 1
     shell:
         """
-        wget https://github.com/Rassa-Gvm/MaxHiC/archive/master.zip
-        unzip master.zip -d MaxHiC
-        mv MaxHiC/MaxHiC-master scripts/MaxHiC
-        rm master.zip
-        rmdir MaxHiC
+        git clone https://github.com/Rassa-Gvm/MaxHiC.git scripts/MaxHiC
         rm -rf scripts/MaxHiC/Sample_Inputs
         """
 
