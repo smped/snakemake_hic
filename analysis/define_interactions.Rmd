@@ -54,7 +54,7 @@ config <- here::here("config/config.yml") %>%
 The output from MaxHiC is extremely large and for some bin-sizes, near impossible to wrangle on a standard laptop.
 In this workflow, each set of outputs containing the **cis** interactions will be loaded and reduced to only the *significant* interactions.
 These far smaller sets of interactions are more easily managed in a standard compute environment.
-Analyses were run for genomic bins of `r pander(as.numeric(str_split(config$hicpro$bin_size, pattern = " ")[[1]])/1e3)`kb.
+Analyses were run for genomic bins of `r pander(paste0(as.numeric(str_split(config$hicpro$bin_size, pattern = " ")[[1]])/1e3, "kb"))` .
 
 # Cis Interactions {.tabset}
 
