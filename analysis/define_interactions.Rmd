@@ -1,5 +1,5 @@
 ---
-title: "Define HiC Iteractions"
+title: "Define HiC Interactions"
 author: |
     | Stephen Pederson
     | Dame Roma Mitchell Cancer Research Laboratories
@@ -246,7 +246,7 @@ for (sz in bin_sizes) {
   )
   cat(
     glue("![*Interactions by distance using {sz/1e3}kb bins*](assets/interaction_by_distance_{sz}.png)"),
-    "\n"
+    "\n\n"
   )
 
 }

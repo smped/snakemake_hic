@@ -50,7 +50,8 @@ samples <- config$samples %>%
 ## Description
 
 This is the data setup and preparations for subsequent integration with ChIP-Seq data.
-No identification of TADs is included as this workflow simply aims to identify *significant interactions* (above background) using combinations of bin sizes.
+No identification of TADs is included.
+This workflow simply aims to identify *significant interactions* (above background) using combinations of bin sizes.
 
 - Data was aligned to `r config$ref$build` obtained from Gencode release `r config$ref$gencode`.
 - HiC Interactions were identified using [Hic-Pro v3.0.0](https://github.com/nservant/HiC-Pro/releases/tag/v3.0.0) and bins of `r pander(paste0(as.integer(str_split(config$hicpro$bin_size, pattern = " ")[[1]])/1e3, "kb"))`
@@ -62,7 +63,7 @@ No identification of TADs is included as this workflow simply aims to identify *
 here::here("rules/rulegraph.dot") %>%
   readLines() %>%
   rm_dot_node(node = "\"all\"") %>%
-  add_input_node(node = "RAW DATA", col = "red", ignore = "(get|build|make|install)") %>%
+  add_input_node(node = "RAW DATA", col = "red", ignore = "(get|build|make|install|initialise)") %>%
   change_node_colour("(hicpro|contact|adapter|merge|run)_", "red") %>% 
   change_node_colour("collect|compress|zip|define", "forestgreen") %>% 
   change_node_colour("(reference|index|chrom_sizes|install_maxhic|find|config|initialise)", "blue") %>% 
