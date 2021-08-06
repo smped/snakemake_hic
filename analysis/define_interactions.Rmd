@@ -65,7 +65,7 @@ bin_sizes <- config$hicpro$bin_size %>%
   as.integer()
 ```
 
-```{r generate_output, results='as.is'}
+```{r generate_output, results='asis'}
 for (sz in bin_sizes) {
 
   ## Section Headers

@@ -497,16 +497,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictreea90e5d057ea7e1163d65cda4343981f22bca25adtargetblanka90e5d0a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/steveped/snakemake_hic/tree/a90e5d057ea7e1163d65cda4343981f22bca25ad" target="_blank">a90e5d0</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictree378a0e11073a75a5fc55d96bae036579512ab2d6targetblank378a0e1a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/steveped/snakemake_hic/tree/378a0e11073a75a5fc55d96bae036579512ab2d6" target="_blank">378a0e1</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictreea90e5d057ea7e1163d65cda4343981f22bca25adtargetblanka90e5d0a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictree378a0e11073a75a5fc55d96bae036579512ab2d6targetblank378a0e1a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/steveped/snakemake_hic/tree/a90e5d057ea7e1163d65cda4343981f22bca25ad" target="_blank">a90e5d0</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/steveped/snakemake_hic/tree/378a0e11073a75a5fc55d96bae036579512ab2d6" target="_blank">378a0e1</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -532,6 +532,8 @@ Unstaged changes:
     Modified:   config/config.yml
     Modified:   rules/collect_output.smk
     Modified:   rules/maxhic.smk
+    Modified:   rules/rulegraph.dot
+    Modified:   rules/rulegraph.pdf
     Modified:   rules/workflowr.smk
 
 Staged changes:
@@ -574,6 +576,23 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/steveped/snakemake_hic/378a0e11073a75a5fc55d96bae036579512ab2d6/docs/index.html" target="_blank">378a0e1</a>
+</td>
+<td>
+Steve Pederson
+</td>
+<td>
+2021-08-06
+</td>
+<td>
+Updated all
+</td>
+</tr>
 <tr>
 <td>
 html
@@ -653,7 +672,7 @@ samples &lt;- config$samples %&gt;%
   grViz()</code></pre>
 <div class="figure" style="text-align: center">
 <div id="htmlwidget-495eed38db8940ef6515" style="width:960px;height:768px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-495eed38db8940ef6515">{"x":{"diagram":"digraph snakemake_dag {\n    graph[bgcolor=white, margin=0];\n    node[shape=box, style=rounded, fontname=sans,                 fontsize=16, penwidth=2];\n    edge[penwidth=2, color=grey];\n\t1[label = \"zip\nfragment\nbedfile\", color = \"#228B22\", style=\"rounded\"];\n\t2[label = \"find\nrestriction\nfragments\", color = \"#0000FF\", style=\"rounded\"];\n\t3[label = \"unzip\nreference\", color = \"#0000FF\", style=\"rounded\"];\n\t4[label = \"get\nreference\", color = \"#0000FF\", style=\"rounded\"];\n\t5[label = \"compress\nmerged\noutput\", color = \"#228B22\", style=\"rounded\"];\n\t6[label = \"merge\ninteraction\nmatrices\", color = \"#FF0000\", style=\"rounded\"];\n\t7[label = \"build\ncontact\nmaps\", color = \"#FF0000\", style=\"rounded\"];\n\t8[label = \"make\nhicpro\nconfig\", color = \"#0000FF\", style=\"rounded\"];\n\t9[label = \"bowtie2\nindex\", color = \"#0000FF\", style=\"rounded\"];\n\t10[label = \"get\nchrom\nsizes\", color = \"#0000FF\", style=\"rounded\"];\n\t11[label = \"hicpro\nmerge\", color = \"#FF0000\", style=\"rounded\"];\n\t12[label = \"hicpro\nproc\", color = \"#FF0000\", style=\"rounded\"];\n\t13[label = \"hicpro\nmapping\", color = \"#FF0000\", style=\"rounded\"];\n\t14[label = \"adapter\nremoval\", color = \"#FF0000\", style=\"rounded\"];\n\t15[label = \"collect\noutput\nvalid\npairs\", color = \"#228B22\", style=\"rounded\"];\n\t16[label = \"collect\noutput\nmatrices\", color = \"#228B22\", style=\"rounded\"];\n\t17[label = \"collect\nstats\", color = \"#FFA500\", style=\"rounded\"];\n\t18[label = \"run\nmaxhic\", color = \"#FF0000\", style=\"rounded\"];\n\t19[label = \"install\nmaxhic\", color = \"#0000FF\", style=\"rounded\"];\n\t20[label = \"build\nsite\nindex\", color = \"#FFA500\", style=\"rounded\"];\n\t21[label = \"build\nraw\nqc\nreport\", color = \"#FFA500\", style=\"rounded\"];\n\t22[label = \"raw\nfastqc\", color = \"#FFA500\", style=\"rounded\"];\n\t23[label = \"build\ntrimmed\nqc\nreport\", color = \"#FFA500\", style=\"rounded\"];\n\t24[label = \"trim\nfastqc\", color = \"#FFA500\", style=\"rounded\"];\n\t25[label = \"build\nhic\nqc\nreport\", color = \"#FFA500\", style=\"rounded\"];\n\t26[label = \"get\nfragment\nlengths\", color = \"#FFA500\", style=\"rounded\"];\n\t27[label = \"convert\nfragment\nsize\nplot\", color = \"#FFA500\", style=\"rounded\"];\n\t28[label = \"define\nsignificant\ninteractions\", color = \"#228B22\", style=\"rounded\"];\n\t29[label = \"RAW DATA\", color = \"#FF0000\", style=\"rectangle\"];\n\t2 -> 1\n\t3 -> 2\n\t4 -> 3\n\t6 -> 5\n\t7 -> 6\n\t11 -> 7\n\t8 -> 7\n\t10 -> 8\n\t2 -> 8\n\t9 -> 8\n\t3 -> 9\n\t8 -> 11\n\t12 -> 11\n\t13 -> 12\n\t8 -> 12\n\t9 -> 13\n\t8 -> 13\n\t14 -> 13\n\t11 -> 15\n\t7 -> 16\n\t11 -> 17\n\t6 -> 18\n\t19 -> 18\n\t23 -> 20\n\t28 -> 20\n\t25 -> 20\n\t21 -> 20\n\t22 -> 21\n\t24 -> 23\n\t14 -> 24\n\t17 -> 25\n\t27 -> 25\n\t26 -> 25\n\t2 -> 26\n\t7 -> 27\n\t18 -> 28\n\t5 -> 28\n\t29 -> 14\n\t29 -> 22\n}            ","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-495eed38db8940ef6515">{"x":{"diagram":"digraph snakemake_dag {\n    graph[bgcolor=white, margin=0];\n    node[shape=box, style=rounded, fontname=sans,                 fontsize=16, penwidth=2];\n    edge[penwidth=2, color=grey];\n\t1[label = \"zip\nfragment\nbedfile\", color = \"#228B22\", style=\"rounded\"];\n\t2[label = \"find\nrestriction\nfragments\", color = \"#0000FF\", style=\"rounded\"];\n\t3[label = \"unzip\nreference\", color = \"#0000FF\", style=\"rounded\"];\n\t4[label = \"get\nreference\", color = \"#0000FF\", style=\"rounded\"];\n\t5[label = \"compress\nmerged\noutput\", color = \"#228B22\", style=\"rounded\"];\n\t6[label = \"merge\ninteraction\nmatrices\", color = \"#FF0000\", style=\"rounded\"];\n\t7[label = \"build\ncontact\nmaps\", color = \"#FF0000\", style=\"rounded\"];\n\t8[label = \"make\nhicpro\nconfig\", color = \"#0000FF\", style=\"rounded\"];\n\t9[label = \"bowtie2\nindex\", color = \"#0000FF\", style=\"rounded\"];\n\t10[label = \"get\nchrom\nsizes\", color = \"#0000FF\", style=\"rounded\"];\n\t11[label = \"hicpro\nmerge\", color = \"#FF0000\", style=\"rounded\"];\n\t12[label = \"hicpro\nproc\", color = \"#FF0000\", style=\"rounded\"];\n\t13[label = \"hicpro\nmapping\", color = \"#FF0000\", style=\"rounded\"];\n\t14[label = \"adapter\nremoval\", color = \"#FF0000\", style=\"rounded\"];\n\t15[label = \"collect\noutput\nvalid\npairs\", color = \"#228B22\", style=\"rounded\"];\n\t16[label = \"collect\noutput\nmatrices\", color = \"#228B22\", style=\"rounded\"];\n\t17[label = \"collect\nstats\", color = \"#FFA500\", style=\"rounded\"];\n\t18[label = \"hicpro\nqc\", color = \"#FFA500\", style=\"rounded\"];\n\t19[label = \"run\nmaxhic\", color = \"#FF0000\", style=\"rounded\"];\n\t20[label = \"install\nmaxhic\", color = \"#0000FF\", style=\"rounded\"];\n\t21[label = \"extract\nsignificant\ninteractions\", color = \"0.02 0.6 0.85\", style=\"rounded\"];\n\t22[label = \"initialise\nr\nproject\", color = \"0.19 0.6 0.85\", style=\"rounded\"];\n\t23[label = \"build\nsite\nindex\", color = \"#FFA500\", style=\"rounded\"];\n\t24[label = \"build\nraw\nqc\nreport\", color = \"#FFA500\", style=\"rounded\"];\n\t25[label = \"raw\nfastqc\", color = \"#FFA500\", style=\"rounded\"];\n\t26[label = \"build\ntrimmed\nqc\nreport\", color = \"#FFA500\", style=\"rounded\"];\n\t27[label = \"trim\nfastqc\", color = \"#FFA500\", style=\"rounded\"];\n\t28[label = \"build\nhic\nqc\nreport\", color = \"#FFA500\", style=\"rounded\"];\n\t29[label = \"get\nfragment\nlengths\", color = \"#FFA500\", style=\"rounded\"];\n\t30[label = \"convert\nfragment\nsize\nplot\", color = \"#FFA500\", style=\"rounded\"];\n\t31[label = \"summarise\nsignificant\ninteractions\", color = \"0.50 0.6 0.85\", style=\"rounded\"];\n\t32[label = \"RAW DATA\", color = \"#FF0000\", style=\"rectangle\"];\n\t2 -> 1\n\t3 -> 2\n\t4 -> 3\n\t6 -> 5\n\t7 -> 6\n\t11 -> 7\n\t8 -> 7\n\t10 -> 8\n\t9 -> 8\n\t2 -> 8\n\t3 -> 9\n\t12 -> 11\n\t8 -> 11\n\t13 -> 12\n\t8 -> 12\n\t9 -> 13\n\t8 -> 13\n\t14 -> 13\n\t11 -> 15\n\t7 -> 16\n\t11 -> 17\n\t11 -> 18\n\t13 -> 18\n\t8 -> 18\n\t20 -> 19\n\t6 -> 19\n\t19 -> 21\n\t22 -> 23\n\t31 -> 23\n\t26 -> 23\n\t24 -> 23\n\t28 -> 23\n\t25 -> 24\n\t22 -> 24\n\t27 -> 26\n\t22 -> 26\n\t14 -> 27\n\t30 -> 28\n\t17 -> 28\n\t22 -> 28\n\t29 -> 28\n\t2 -> 29\n\t18 -> 30\n\t21 -> 31\n\t22 -> 31\n\t32 -> 14\n\t32 -> 22\n\t32 -> 25\n}            ","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 <p class="caption">
 <em>Summary of processing workflow. The primary data pipeline is shown in red, with QC/reporting steps shown in orange. Preparatory steps are shown in blue whilst collation of final output is in green.</em>
 </p>

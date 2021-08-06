@@ -493,16 +493,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictreea90e5d057ea7e1163d65cda4343981f22bca25adtargetblanka90e5d0a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/steveped/snakemake_hic/tree/a90e5d057ea7e1163d65cda4343981f22bca25ad" target="_blank">a90e5d0</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictree378a0e11073a75a5fc55d96bae036579512ab2d6targetblank378a0e1a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/steveped/snakemake_hic/tree/378a0e11073a75a5fc55d96bae036579512ab2d6" target="_blank">378a0e1</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictreea90e5d057ea7e1163d65cda4343981f22bca25adtargetblanka90e5d0a" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictree378a0e11073a75a5fc55d96bae036579512ab2d6targetblank378a0e1a" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/steveped/snakemake_hic/tree/a90e5d057ea7e1163d65cda4343981f22bca25ad" target="_blank">a90e5d0</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/steveped/snakemake_hic/tree/378a0e11073a75a5fc55d96bae036579512ab2d6" target="_blank">378a0e1</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -529,6 +529,8 @@ Unstaged changes:
     Modified:   config/config.yml
     Modified:   rules/collect_output.smk
     Modified:   rules/maxhic.smk
+    Modified:   rules/rulegraph.dot
+    Modified:   rules/rulegraph.pdf
     Modified:   rules/workflowr.smk
 
 </code></pre>
@@ -568,6 +570,40 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/steveped/snakemake_hic/blob/378a0e11073a75a5fc55d96bae036579512ab2d6/analysis/define_interactions.Rmd" target="_blank">378a0e1</a>
+</td>
+<td>
+Steve Pederson
+</td>
+<td>
+2021-08-06
+</td>
+<td>
+Updated all
+</td>
+</tr>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/steveped/snakemake_hic/378a0e11073a75a5fc55d96bae036579512ab2d6/docs/define_interactions.html" target="_blank">378a0e1</a>
+</td>
+<td>
+Steve Pederson
+</td>
+<td>
+2021-08-06
+</td>
+<td>
+Updated all
+</td>
+</tr>
 <tr>
 <td>
 Rmd
@@ -827,27 +863,30 @@ alpha &lt;- 0.05</code></pre>
   )
 
 }</code></pre>
-<pre><code>## 20kb Bins {.tabset}
-
-- 0 bin-pair interactions were retained. This represented 0.00% of all interactions detected in the dataset. 
-
-### Interaction Summary</code></pre>
-<pre><code>![](assets/interaction_summary_20000.png}) 
-
-
-
-### Interaction Distances
-
-## 40kb Bins {.tabset}
-
-- 0 bin-pair interactions were retained. This represented 0.00% of all interactions detected in the dataset. 
-
-### Interaction Summary</code></pre>
-<pre><code>![](assets/interaction_summary_40000.png}) 
-
-
-
-### Interaction Distances</code></pre>
+<div id="kb-bins" class="section level2 tabset">
+<h2 class="tabset">20kb Bins</h2>
+<ul>
+<li>0 bin-pair interactions were retained. This represented 0.00% of all interactions detected in the dataset.</li>
+</ul>
+<div id="interaction-summary" class="section level3">
+<h3>Interaction Summary</h3>
+<p><img src="assets/interaction_summary_20000.png%7D" /></p>
+</div>
+<div id="interaction-distances" class="section level3">
+<h3>Interaction Distances</h3>
+</div>
+</div>
+<div id="kb-bins-1" class="section level2 tabset">
+<h2 class="tabset">40kb Bins</h2>
+<ul>
+<li>0 bin-pair interactions were retained. This represented 0.00% of all interactions detected in the dataset.</li>
+</ul>
+<div id="interaction-summary-1" class="section level3">
+<h3>Interaction Summary</h3>
+<p><img src="assets/interaction_summary_40000.png%7D" /></p>
+</div>
+<div id="interaction-distances-1" class="section level3">
+<h3>Interaction Distances</h3>
 <br>
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
@@ -919,6 +958,8 @@ loaded via a namespace (and not attached):
 [76] readxl_1.3.1             data.table_1.14.0        git2r_0.28.0            
 [79] reprex_2.0.1             digest_0.6.27            httpuv_1.6.1            
 [82] munsell_0.5.0            viridisLite_0.4.0       </code></pre>
+</div>
+</div>
 </div>
 </div>
 
