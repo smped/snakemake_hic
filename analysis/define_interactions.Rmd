@@ -56,23 +56,7 @@ In this workflow, each set of outputs containing the **cis** interactions will b
 These far smaller sets of interactions are more easily managed in a standard compute environment.
 Analyses were run for genomic bins of `r pander(as.numeric(str_split(config$hicpro$bin_size, pattern = " ")[[1]])/1e3)`kb.
 
-# Data Preparation {.tabset}
-
-```{r sq}
-sq <- here::here(
-  "output", config$ref$build,
-  glue("{config$ref$build}.chr_sizes.tsv")
-  ) %>% 
-  read_tsv(col_names = c("seqnames", "length")) %>%
-  with(
-    Seqinfo(
-      seqnames = seqnames,
-      seqlengths = length,
-      isCircular = rep(FALSE, length(seqnames)),
-      genome = config$ref$build
-    )
-  )
-```
+# Cis Interactions {.tabset}
 
 ```{r bin_sizes}
 bin_sizes <- config$hicpro$bin_size %>% 
@@ -81,902 +65,176 @@ bin_sizes <- config$hicpro$bin_size %>%
   as.integer()
 ```
 
-## `r bin_sizes[[1]]/1e3`kb Bins {.tabset}
+```{r generate_output, results='as.is'}
+for (sz in bin_sizes) {
 
-```{r bins_1}
-sz <- bin_sizes[[1]]
-bins <- import.bed(
-  here::here(
-    "output/hic_pro//matrix/raw",
-    glue("merged_{sz}_abs.bed.gz")
-  ),
-  seqinfo = sq
-)
-```
-
-```{r load_interactions_1}
-cis_int <- vroom(
-  here::here(
-    "output/MaxHiC",
-    glue("{sz}/cis_interactions.txt.gz")
-  ),
-  col_types = "dddd-d--"
-)
-fdr <- p.adjust(exp(-cis_int$neg_ln_p_val), "fdr")
-keepInt <- fdr < alpha
-```
-
-By default, any bin pairs with no observed interactions were excluded from the Max-HiC output.
-Using `r sz/1e3`kb bins, a total of `r comma(nrow(cis_int))` non-zero interactions were observed between bin pairs.
-The median observed interaction count was `r median(cis_int$observed_interactions)`, whilst the maximum was `r max(cis_int$observed_interactions)`.
-
-By default, the FDR provided by Max-HiC is incorrect and was ignored.
-The MaxHiC output was defined as a `GInteractions` object, with correct FDR added and interactions filtered to only include those with an FDR < `r alpha`.
-
-```{r form_gi_1}
-gi <- GInteractions(
-  anchor1 = bins[as.integer(cis_int$bin1ID[keepInt])],
-  anchor2 = bins[as.integer(cis_int$bin2ID[keepInt])],
-  counts = as.integer(cis_int$observed_interactions[keepInt]),
-  exp_interactions = cis_int$exp_interactions[keepInt],
-  p = exp(-cis_int$neg_ln_p_val)[keepInt],
-  fdr = fdr[keepInt]
-)
-gi$bin_size <- Rle(sz, sum(keepInt))
-gi$distance <- pairdist(gi)
-gi$logObsExp <- log2(gi$counts / gi$exp_interactions)
-seqinfo(gi) <- sq
-write_rds(
-  gi,
-  here::here("output/MaxHiC", glue("gi_{sz}_cis.rds")),
-  compress = "gz"
-)
-```
-
-After filtering interactions to only those considered significant:
-
-- `r comma(length(gi))` bin-pair interactions were retained. This represented `r percent(mean(keepInt), accuracy = 0.01)` of the total identified.
-- The observed interactions between retained bin-pairs ranged between `r pander(range(gi$counts))`
-- The log~2~ ratio of of observed to expected counts ranged between `r pander(round(range(gi$logObsExp), 2))`. These values represent enrichment for interactions well above that expected by the background model.
-- The median interaction distance was `r round(median(gi$distance)/1e3, 1)`kb
-- The longest interaction was between bins separated by `r round(max(gi$distance)/1e6, 1)`Mb
-
-### Interaction Summary
-
-```{r plot_interactions_1, fig.height = 5, fig.width = 9, fig.cap = glue("*Genomic Distribution of significant interactions using {sz/1e3}kb bins*")}
-a <- gi %>%
-  anchors("first") %>%
-  seqnames() %>%
-  table() %>%
-  enframe(
-    name = "chr",
-    value = "count"
-  ) %>%
-  mutate(
-    chr = str_remove_all(chr, "chr"),
-    chr = fct_inorder(chr),
-    count = as.integer(count)
-  ) %>%
-  ggplot(
-    aes(chr, count)
-  ) +
-  geom_col() +
-  labs(
-    x = "Chromosome",
-    y = glue("Total Significant Cis Interactions ({sz/1e3}kb bins)")
-  ) +
-  scale_y_continuous(expand = expansion(c(0, 0.05)), labels = comma)
- b <- gi %>%
-  anchors("first") %>%
-  seqnames() %>%
-  table() %>%
-  enframe(
-    name = "seqnames",
-    value = "count"
-  ) %>%
-  mutate(
-    seqnames =factor(seqnames, levels = seqlevels(sq)),
-    count = as.integer(count)
-  ) %>% 
-  left_join(
-    tibble(
-      seqnames = seqnames(sq),
-      seqlengths = seqlengths(sq)
+  ## Section Headers
+  cat(glue("## {sz/1e3}kb Bins"), "{.tabset}\n\n")
+  ## Key info
+  fl <- here::here("output", "MaxHiC", sz, "cis_interactions.txt.gz")
+  n <- system2("zcat", glue("{fl} | wc -l"), stdout = TRUE) %>% 
+    as.integer()
+  gi <- glue("output/MaxHiC/gi_{sz}_cis.rds") %>% 
+    here::here() %>% 
+    read_rds()
+  cat(
+    glue(
+      "- {comma(length(gi))} bin-pair interactions were retained.",
+      "This represented {percent(length(gi)/n, accuracy = 0.01)}",
+      "of all interactions detected in the dataset.",
+      .sep = " "
+    ),
+    "\n"
+  )
+  ## Describe the counts
+  if (length(gi) > 0) {
+    
+    cat(
+      glue(
+        "- The observed interactions between retained bin-pairs ranged between",
+        glue_collapse(range(gi$counts), last = ' & '),
+        .sep = " "
+      ),
+      "\n"
     )
-  ) %>% 
-  mutate(
-    count_per_mb = count / (seqlengths / 1e6),
-    chr = str_remove_all(seqnames, "chr"),
-    chr = fct_inorder(chr)
-  ) %>%
-  ggplot(
-    aes(chr, count_per_mb)
-  ) +
-  geom_col() +
-  labs(
-    x = "Chromosome",
-    y = glue("Significant Cis Interactions per Mb ({sz/1e3}kb bins)")
-  ) +
-  scale_y_continuous(expand = expansion(c(0, 0.05)))
+
+    cat(
+      glue(
+        "- The log~2~ ratio of of observed to expected counts ranged between",
+        glue_collapse(round(range(gi$logObsExp), 2), last = ' & '),
+        .sep = " "
+      ),
+      "\n"
+    )
+
+    cat(
+      glue(
+        "- The median interaction distance was",
+        "{round(median(gi$distance)/1e3, 1)}kb",
+        .sep = " "
+      ),
+      "\n"
+    )
+
+    cat(
+      glue(
+        "- The largest interaction distance was",
+        "{round(max(gi$distance)/1e6, 1)}Mb",
+        .sep = " "
+      ),
+      "\n\n"
+    )
+    
+  }
+
+   ## Some plots
+    cat("### Interaction Summary\n\n")
+    a <- gi %>%
+      anchors("first") %>%
+      seqnames() %>%
+      table() %>%
+      enframe(
+        name = "chr",
+        value = "count"
+      ) %>%
+      mutate(
+        chr = str_remove_all(chr, "chr"),
+        chr = fct_inorder(chr),
+        count = as.integer(count)
+      ) %>%
+      ggplot(
+        aes(chr, count)
+      ) +
+      geom_col() +
+      labs(
+        x = "Chromosome",
+        y = glue("Total Significant Cis Interactions ({sz/1e3}kb bins)")
+      ) +
+      scale_y_continuous(expand = expansion(c(0, 0.05)), labels = comma)
+  b <- gi %>%
+    anchors("first") %>%
+    seqnames() %>%
+    table() %>%
+    enframe(
+      name = "seqnames",
+      value = "count"
+    ) %>%
+    mutate(
+      seqnames = factor(seqnames, levels = seqlevels(gi)),
+      count = as.integer(count)
+    ) %>% 
+    left_join(
+      tibble(
+        seqnames = seqlevels(gi),
+        seqlengths = seqlengths(gi)
+      )
+    ) %>% 
+    mutate(
+      count_per_mb = count / (seqlengths / 1e6),
+      chr = str_remove_all(seqnames, "chr"),
+      chr = fct_inorder(chr)
+    ) %>%
+    ggplot(
+      aes(chr, count_per_mb)
+    ) +
+    geom_col() +
+    labs(
+      x = "Chromosome",
+      y = glue("Significant Cis Interactions per Mb ({sz/1e3}kb bins)")
+    ) +
+    scale_y_continuous(expand = expansion(c(0, 0.05)))
   plot_grid(a, b, labels = c("A", "B"))
-```
+  cat("\n\n")
 
-### Interaction Distances
-
-```{r plot_distances_1,fig.height=6, fig.width = 9, fig.cap = glue("*Relationship between counts and distance using {sz/1e3}kb bins*")}
-a <- mcols(gi) %>% 
-  as.data.frame %>% 
-  ggplot(aes(distance/1e3, counts)) + 
-  geom_point(alpha = 0.4) + 
-  geom_smooth(se = FALSE, method = "gam", formula = y ~ s(x, bs = "cs")) +
-  scale_x_log10(labels = comma) +
-  scale_y_log10() +
-  labs(
-    x = "Distance between bins (kb)",
-    y = "Reads Spanning Bins"
-  )
-b <- mcols(gi) %>%
-  as.data.frame %>% 
-  ggplot(aes(counts, stat(density))) + 
-  geom_density() + 
-  coord_flip() + 
-  labs(x = c(), y = "") +
-  scale_x_log10() +
-  theme(
-    axis.text = element_blank(), 
-    panel.grid.major.x =  element_blank(),
-    panel.grid.minor.x = element_blank(),
-    axis.ticks.x = element_blank(),
-    axis.ticks.y = element_blank()
+  cat("### Interaction Distances\n\n")
+  a <- mcols(gi) %>% 
+    as.data.frame %>% 
+    ggplot(aes(distance/1e3, counts)) + 
+    geom_point(alpha = 0.4) + 
+    geom_smooth(se = FALSE, method = "gam", formula = y ~ s(x, bs = "cs")) +
+    scale_x_log10(labels = comma) +
+    scale_y_log10() +
+    labs(
+      x = "Distance between bins (kb)",
+      y = "Reads Spanning Bins"
     )
-c <- mcols(gi) %>%
-  as.data.frame %>% 
-  ggplot(aes(distance/1e3, stat(density))) + 
-  geom_density() + 
-  scale_x_log10() +
-  labs(x = c(), y = "") +
-  theme(
-    panel.grid.major.y = element_blank(),
-    panel.grid.minor.y = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks.y = element_blank(), 
-    axis.ticks.x = element_blank()
-  )
-plot_grid(
+  b <- mcols(gi) %>%
+    as.data.frame %>% 
+    ggplot(aes(counts, stat(density))) + 
+    geom_density() + 
+    coord_flip() + 
+    labs(x = c(), y = "") +
+    scale_x_log10() +
+    theme(
+      axis.text = element_blank(), 
+      panel.grid.major.x =  element_blank(),
+      panel.grid.minor.x = element_blank(),
+      axis.ticks.x = element_blank(),
+      axis.ticks.y = element_blank()
+      )
+  c <- mcols(gi) %>%
+    as.data.frame %>% 
+    ggplot(aes(distance/1e3, stat(density))) + 
+    geom_density() + 
+    scale_x_log10() +
+    labs(x = c(), y = "") +
+    theme(
+      panel.grid.major.y = element_blank(),
+      panel.grid.minor.y = element_blank(),
+      axis.text = element_blank(),
+      axis.ticks.y = element_blank(), 
+      axis.ticks.x = element_blank()
+    )
   plot_grid(
-    ngsReports:::.emptyPlot(""), c, ngsReports:::.emptyPlot(""),
-    rel_widths = c(0.04, 0.86, 0.1), 
-    nrow = 1
-  ),
-  plot_grid(a, b, rel_widths = c(0.9, 0.1), align = "h"),
-  rel_heights = c(0.1, 0.9), nrow = 2, align = "v", axis = "r"
-)
-```
-
-```{r cleanup_1, results='hide'}
-rm(gi)
-rm(cis_int)
-rm(fdr)
-rm(keepInt)
-gc()
-```
-
-## `r bin_sizes[[2]]/1e3`kb Bins {.tabset}
-
-```{r bins_2}
-sz <- bin_sizes[[2]]
-bins <- import.bed(
-  here::here(
-    "output/hic_pro//matrix/raw",
-    glue("merged_{sz}_abs.bed.gz")
-  ),
-  seqinfo = sq
-)
-```
-
-```{r load_interactions_2}
-cis_int <- vroom(
-  here::here(
-    "output/MaxHiC",
-    glue("{sz}/cis_interactions.txt.gz")
-  ),
-  col_types = "dddd-d--"
-)
-fdr <- p.adjust(exp(-cis_int$neg_ln_p_val), "fdr")
-keepInt <- fdr < alpha
-```
-
-By default, any bin pairs with no observed interactions were excluded from the Max-HiC output.
-Using `r sz/1e3`kb bins, a total of `r comma(nrow(cis_int))` non-zero interactions were observed between bin pairs.
-The median observed interaction count was `r median(cis_int$observed_interactions)`, whilst the maximum was `r max(cis_int$observed_interactions)`.
-
-By default, the FDR provided by Max-HiC is incorrect and was ignored.
-The MaxHiC output was defined as a `GInteractions` object, with correct FDR added and interactions filtered to only include those with an FDR < `r alpha`.
-
-```{r form_gi_2}
-gi <- GInteractions(
-  anchor1 = bins[as.integer(cis_int$bin1ID[keepInt])],
-  anchor2 = bins[as.integer(cis_int$bin2ID[keepInt])],
-  counts = as.integer(cis_int$observed_interactions[keepInt]),
-  exp_interactions = cis_int$exp_interactions[keepInt],
-  p = exp(-cis_int$neg_ln_p_val)[keepInt],
-  fdr = fdr[keepInt]
-)
-gi$bin_size <- Rle(sz, sum(keepInt))
-gi$distance <- pairdist(gi)
-gi$logObsExp <- log2(gi$counts / gi$exp_interactions)
-seqinfo(gi) <- sq
-write_rds(
-  gi,
-  here::here("output/MaxHiC", glue("gi_{sz}_cis.rds")),
-  compress = "gz"
-)
-```
-
-After filtering interactions to only those considered significant:
-
-- `r comma(length(gi))` bin-pair interactions were retained. This represented `r percent(mean(keepInt), accuracy = 0.01)` of the total identified.
-- The observed interactions between retained bin-pairs ranged between `r pander(range(gi$counts))`
-- The log~2~ ratio of of observed to expected counts ranged between `r pander(round(range(gi$logObsExp), 2))`. These values represent enrichment for interactions well above that expected by the background model.
-- The median interaction distance was `r round(median(gi$distance)/1e3, 1)`kb
-- The longest interaction was between bins separated by `r round(max(gi$distance)/1e6, 1)`Mb
-
-### Interaction Summary
-
-```{r plot_interactions_2, fig.height = 5, fig.width = 9, fig.cap = glue("*Genomic Distribution of significant interactions using {sz/1e3}kb bins*")}
-a <- gi %>%
-  anchors("first") %>%
-  seqnames() %>%
-  table() %>%
-  enframe(
-    name = "chr",
-    value = "count"
-  ) %>%
-  mutate(
-    chr = str_remove_all(chr, "chr"),
-    chr = fct_inorder(chr),
-    count = as.integer(count)
-  ) %>%
-  ggplot(
-    aes(chr, count)
-  ) +
-  geom_col() +
-  labs(
-    x = "Chromosome",
-    y = glue("Total Significant Cis Interactions ({sz/1e3}kb bins)")
-  ) +
-  scale_y_continuous(expand = expansion(c(0, 0.05)), labels = comma)
- b <- gi %>%
-  anchors("first") %>%
-  seqnames() %>%
-  table() %>%
-  enframe(
-    name = "seqnames",
-    value = "count"
-  ) %>%
-  mutate(
-    seqnames =factor(seqnames, levels = seqlevels(sq)),
-    count = as.integer(count)
-  ) %>% 
-  left_join(
-    tibble(
-      seqnames = seqnames(sq),
-      seqlengths = seqlengths(sq)
-    )
-  ) %>% 
-  mutate(
-    count_per_mb = count / (seqlengths / 1e6),
-    chr = str_remove_all(seqnames, "chr"),
-    chr = fct_inorder(chr)
-  ) %>%
-  ggplot(
-    aes(chr, count_per_mb)
-  ) +
-  geom_col() +
-  labs(
-    x = "Chromosome",
-    y = glue("Significant Cis Interactions per Mb ({sz/1e3}kb bins)")
-  ) +
-  scale_y_continuous(expand = expansion(c(0, 0.05)))
-  plot_grid(a, b, labels = c("A", "B"))
-```
-
-### Interaction Distances
-
-```{r plot_distances_2,fig.height=6, fig.width = 9, fig.cap = glue("*Relationship between counts and distance using {sz/1e3}kb bins*")}
-a <- mcols(gi) %>% 
-  as.data.frame %>% 
-  ggplot(aes(distance/1e3, counts)) + 
-  geom_point(alpha = 0.4) + 
-  geom_smooth(se = FALSE, method = "gam", formula = y ~ s(x, bs = "cs")) +
-  scale_x_log10(labels = comma) +
-  scale_y_log10() +
-  labs(
-    x = "Distance between bins (kb)",
-    y = "Reads Spanning Bins"
+    plot_grid(
+      ngsReports:::.emptyPlot(""), c, ngsReports:::.emptyPlot(""),
+      rel_widths = c(0.04, 0.86, 0.1), 
+      nrow = 1
+    ),
+    plot_grid(a, b, rel_widths = c(0.9, 0.1), align = "h"),
+    rel_heights = c(0.1, 0.9), nrow = 2, align = "v", axis = "r"
   )
-b <- mcols(gi) %>%
-  as.data.frame %>% 
-  ggplot(aes(counts, stat(density))) + 
-  geom_density() + 
-  coord_flip() + 
-  labs(x = c(), y = "") +
-  scale_x_log10() +
-  theme(
-    axis.text = element_blank(), 
-    panel.grid.major.x =  element_blank(),
-    panel.grid.minor.x = element_blank(),
-    axis.ticks.x = element_blank(),
-    axis.ticks.y = element_blank()
-    )
-c <- mcols(gi) %>%
-  as.data.frame %>% 
-  ggplot(aes(distance/1e3, stat(density))) + 
-  geom_density() + 
-  scale_x_log10() +
-  labs(x = c(), y = "") +
-  theme(
-    panel.grid.major.y = element_blank(),
-    panel.grid.minor.y = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks.y = element_blank(), 
-    axis.ticks.x = element_blank()
-  )
-plot_grid(
-  plot_grid(
-    ngsReports:::.emptyPlot(""), c, ngsReports:::.emptyPlot(""),
-    rel_widths = c(0.04, 0.86, 0.1), 
-    nrow = 1
-  ),
-  plot_grid(a, b, rel_widths = c(0.9, 0.1), align = "h"),
-  rel_heights = c(0.1, 0.9), nrow = 2, align = "v", axis = "r"
-)
+
+}
 ```
 
-```{r cleanup_2, results='hide'}
-rm(gi)
-rm(cis_int)
-rm(fdr)
-rm(keepInt)
-gc()
-```
-
-## `r bin_sizes[[3]]/1e3`kb Bins {.tabset}
-
-```{r bins_3}
-sz <- bin_sizes[[3]]
-bins <- import.bed(
-  here::here(
-    "output/hic_pro//matrix/raw",
-    glue("merged_{sz}_abs.bed.gz")
-  ),
-  seqinfo = sq
-)
-```
-
-```{r load_interactions_3}
-cis_int <- vroom(
-  here::here(
-    "output/MaxHiC",
-    glue("{sz}/cis_interactions.txt.gz")
-  ),
-  col_types = "dddd-d--"
-)
-fdr <- p.adjust(exp(-cis_int$neg_ln_p_val), "fdr")
-keepInt <- fdr < alpha
-```
-
-By default, any bin pairs with no observed interactions were excluded from the Max-HiC output.
-Using `r sz/1e3`kb bins, a total of `r comma(nrow(cis_int))` non-zero interactions were observed between bin pairs.
-The median observed interaction count was `r median(cis_int$observed_interactions)`, whilst the maximum was `r max(cis_int$observed_interactions)`.
-
-By default, the FDR provided by Max-HiC is incorrect and was ignored.
-The MaxHiC output was defined as a `GInteractions` object, with correct FDR added and interactions filtered to only include those with an FDR < `r alpha`.
-
-```{r form_gi_3}
-gi <- GInteractions(
-  anchor1 = bins[as.integer(cis_int$bin1ID[keepInt])],
-  anchor2 = bins[as.integer(cis_int$bin2ID[keepInt])],
-  counts = as.integer(cis_int$observed_interactions[keepInt]),
-  exp_interactions = cis_int$exp_interactions[keepInt],
-  p = exp(-cis_int$neg_ln_p_val)[keepInt],
-  fdr = fdr[keepInt]
-)
-gi$bin_size <- Rle(sz, sum(keepInt))
-gi$distance <- pairdist(gi)
-gi$logObsExp <- log2(gi$counts / gi$exp_interactions)
-seqinfo(gi) <- sq
-write_rds(
-  gi,
-  here::here("output/MaxHiC", glue("gi_{sz}_cis.rds")),
-  compress = "gz"
-)
-```
-
-After filtering interactions to only those considered significant:
-
-- `r comma(length(gi))` bin-pair interactions were retained. This represented `r percent(mean(keepInt), accuracy = 0.01)` of the total identified.
-- The observed interactions between retained bin-pairs ranged between `r pander(range(gi$counts))`
-- The log~2~ ratio of of observed to expected counts ranged between `r pander(round(range(gi$logObsExp), 2))`. These values represent enrichment for interactions well above that expected by the background model.
-- The median interaction distance was `r round(median(gi$distance)/1e3, 1)`kb
-- The longest interaction was between bins separated by `r round(max(gi$distance)/1e6, 1)`Mb
-
-### Interaction Summary
-
-```{r plot_interactions_3, fig.height = 5, fig.width = 9, fig.cap = glue("*Genomic Distribution of significant interactions using {sz/1e3}kb bins*")}
-a <- gi %>%
-  anchors("first") %>%
-  seqnames() %>%
-  table() %>%
-  enframe(
-    name = "chr",
-    value = "count"
-  ) %>%
-  mutate(
-    chr = str_remove_all(chr, "chr"),
-    chr = fct_inorder(chr),
-    count = as.integer(count)
-  ) %>%
-  ggplot(
-    aes(chr, count)
-  ) +
-  geom_col() +
-  labs(
-    x = "Chromosome",
-    y = glue("Total Significant Cis Interactions ({sz/1e3}kb bins)")
-  ) +
-  scale_y_continuous(expand = expansion(c(0, 0.05)), labels = comma)
- b <- gi %>%
-  anchors("first") %>%
-  seqnames() %>%
-  table() %>%
-  enframe(
-    name = "seqnames",
-    value = "count"
-  ) %>%
-  mutate(
-    seqnames =factor(seqnames, levels = seqlevels(sq)),
-    count = as.integer(count)
-  ) %>% 
-  left_join(
-    tibble(
-      seqnames = seqnames(sq),
-      seqlengths = seqlengths(sq)
-    )
-  ) %>% 
-  mutate(
-    count_per_mb = count / (seqlengths / 1e6),
-    chr = str_remove_all(seqnames, "chr"),
-    chr = fct_inorder(chr)
-  ) %>%
-  ggplot(
-    aes(chr, count_per_mb)
-  ) +
-  geom_col() +
-  labs(
-    x = "Chromosome",
-    y = glue("Significant Cis Interactions per Mb ({sz/1e3}kb bins)")
-  ) +
-  scale_y_continuous(expand = expansion(c(0, 0.05)))
-  plot_grid(a, b, labels = c("A", "B"))
-```
-
-### Interaction Distances
-
-```{r plot_distances_3,fig.height=6, fig.width = 9, fig.cap = glue("*Relationship between counts and distance using {sz/1e3}kb bins*")}
-a <- mcols(gi) %>% 
-  as.data.frame %>% 
-  ggplot(aes(distance/1e3, counts)) + 
-  geom_point(alpha = 0.4) + 
-  geom_smooth(se = FALSE, method = "gam", formula = y ~ s(x, bs = "cs")) +
-  scale_x_log10(labels = comma) +
-  scale_y_log10() +
-  labs(
-    x = "Distance between bins (kb)",
-    y = "Reads Spanning Bins"
-  )
-b <- mcols(gi) %>%
-  as.data.frame %>% 
-  ggplot(aes(counts, stat(density))) + 
-  geom_density() + 
-  coord_flip() + 
-  labs(x = c(), y = "") +
-  scale_x_log10() +
-  theme(
-    axis.text = element_blank(), 
-    panel.grid.major.x =  element_blank(),
-    panel.grid.minor.x = element_blank(),
-    axis.ticks.x = element_blank(),
-    axis.ticks.y = element_blank()
-    )
-c <- mcols(gi) %>%
-  as.data.frame %>% 
-  ggplot(aes(distance/1e3, stat(density))) + 
-  geom_density() + 
-  scale_x_log10() +
-  labs(x = c(), y = "") +
-  theme(
-    panel.grid.major.y = element_blank(),
-    panel.grid.minor.y = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks.y = element_blank(), 
-    axis.ticks.x = element_blank()
-  )
-plot_grid(
-  plot_grid(
-    ngsReports:::.emptyPlot(""), c, ngsReports:::.emptyPlot(""),
-    rel_widths = c(0.04, 0.86, 0.1), 
-    nrow = 1
-  ),
-  plot_grid(a, b, rel_widths = c(0.9, 0.1), align = "h"),
-  rel_heights = c(0.1, 0.9), nrow = 2, align = "v", axis = "r"
-)
-```
-
-```{r cleanup_3, results='hide'}
-rm(gi)
-rm(cis_int)
-rm(fdr)
-rm(keepInt)
-gc()
-```
-
-## `r bin_sizes[[4]]/1e3`kb Bins {.tabset}
-
-```{r bins_4}
-sz <- bin_sizes[[4]]
-bins <- import.bed(
-  here::here(
-    "output/hic_pro//matrix/raw",
-    glue("merged_{sz}_abs.bed.gz")
-  ),
-  seqinfo = sq
-)
-```
-
-```{r load_interactions_4}
-cis_int <- vroom(
-  here::here(
-    "output/MaxHiC",
-    glue("{sz}/cis_interactions.txt.gz")
-  ),
-  col_types = "dddd-d--"
-)
-fdr <- p.adjust(exp(-cis_int$neg_ln_p_val), "fdr")
-keepInt <- fdr < alpha
-```
-
-By default, any bin pairs with no observed interactions were excluded from the Max-HiC output.
-Using `r sz/1e3`kb bins, a total of `r comma(nrow(cis_int))` non-zero interactions were observed between bin pairs.
-The median observed interaction count was `r median(cis_int$observed_interactions)`, whilst the maximum was `r max(cis_int$observed_interactions)`.
-
-By default, the FDR provided by Max-HiC is incorrect and was ignored.
-The MaxHiC output was defined as a `GInteractions` object, with correct FDR added and interactions filtered to only include those with an FDR < `r alpha`.
-
-```{r form_gi_4}
-gi <- GInteractions(
-  anchor1 = bins[as.integer(cis_int$bin1ID[keepInt])],
-  anchor2 = bins[as.integer(cis_int$bin2ID[keepInt])],
-  counts = as.integer(cis_int$observed_interactions[keepInt]),
-  exp_interactions = cis_int$exp_interactions[keepInt],
-  p = exp(-cis_int$neg_ln_p_val)[keepInt],
-  fdr = fdr[keepInt]
-)
-gi$bin_size <- Rle(sz, sum(keepInt))
-gi$distance <- pairdist(gi)
-gi$logObsExp <- log2(gi$counts / gi$exp_interactions)
-seqinfo(gi) <- sq
-write_rds(
-  gi,
-  here::here("output/MaxHiC", glue("gi_{sz}_cis.rds")),
-  compress = "gz"
-)
-```
-
-After filtering interactions to only those considered significant:
-
-- `r comma(length(gi))` bin-pair interactions were retained. This represented `r percent(mean(keepInt), accuracy = 0.01)` of the total identified.
-- The observed interactions between retained bin-pairs ranged between `r pander(range(gi$counts))`
-- The log~2~ ratio of of observed to expected counts ranged between `r pander(round(range(gi$logObsExp), 2))`. These values represent enrichment for interactions well above that expected by the background model.
-- The median interaction distance was `r round(median(gi$distance)/1e3, 1)`kb
-- The longest interaction was between bins separated by `r round(max(gi$distance)/1e6, 1)`Mb
-
-### Interaction Summary
-
-```{r plot_interactions_4, fig.height = 5, fig.width = 9, fig.cap = glue("*Genomic Distribution of significant interactions using {sz/1e3}kb bins*")}
-a <- gi %>%
-  anchors("first") %>%
-  seqnames() %>%
-  table() %>%
-  enframe(
-    name = "chr",
-    value = "count"
-  ) %>%
-  mutate(
-    chr = str_remove_all(chr, "chr"),
-    chr = fct_inorder(chr),
-    count = as.integer(count)
-  ) %>%
-  ggplot(
-    aes(chr, count)
-  ) +
-  geom_col() +
-  labs(
-    x = "Chromosome",
-    y = glue("Total Significant Cis Interactions ({sz/1e3}kb bins)")
-  ) +
-  scale_y_continuous(expand = expansion(c(0, 0.05)), labels = comma)
- b <- gi %>%
-  anchors("first") %>%
-  seqnames() %>%
-  table() %>%
-  enframe(
-    name = "seqnames",
-    value = "count"
-  ) %>%
-  mutate(
-    seqnames =factor(seqnames, levels = seqlevels(sq)),
-    count = as.integer(count)
-  ) %>% 
-  left_join(
-    tibble(
-      seqnames = seqnames(sq),
-      seqlengths = seqlengths(sq)
-    )
-  ) %>% 
-  mutate(
-    count_per_mb = count / (seqlengths / 1e6),
-    chr = str_remove_all(seqnames, "chr"),
-    chr = fct_inorder(chr)
-  ) %>%
-  ggplot(
-    aes(chr, count_per_mb)
-  ) +
-  geom_col() +
-  labs(
-    x = "Chromosome",
-    y = glue("Significant Cis Interactions per Mb ({sz/1e3}kb bins)")
-  ) +
-  scale_y_continuous(expand = expansion(c(0, 0.05)))
-  plot_grid(a, b, labels = c("A", "B"))
-```
-
-### Interaction Distances
-
-```{r plot_distances_4,fig.height=6, fig.width = 9, fig.cap = glue("*Relationship between counts and distance using {sz/1e3}kb bins*")}
-a <- mcols(gi) %>% 
-  as.data.frame %>% 
-  ggplot(aes(distance/1e3, counts)) + 
-  geom_point(alpha = 0.4) + 
-  geom_smooth(se = FALSE, method = "gam", formula = y ~ s(x, bs = "cs")) +
-  scale_x_log10(labels = comma) +
-  scale_y_log10() +
-  labs(
-    x = "Distance between bins (kb)",
-    y = "Reads Spanning Bins"
-  )
-b <- mcols(gi) %>%
-  as.data.frame %>% 
-  ggplot(aes(counts, stat(density))) + 
-  geom_density() + 
-  coord_flip() + 
-  labs(x = c(), y = "") +
-  scale_x_log10() +
-  theme(
-    axis.text = element_blank(), 
-    panel.grid.major.x =  element_blank(),
-    panel.grid.minor.x = element_blank(),
-    axis.ticks.x = element_blank(),
-    axis.ticks.y = element_blank()
-    )
-c <- mcols(gi) %>%
-  as.data.frame %>% 
-  ggplot(aes(distance/1e3, stat(density))) + 
-  geom_density() + 
-  scale_x_log10() +
-  labs(x = c(), y = "") +
-  theme(
-    panel.grid.major.y = element_blank(),
-    panel.grid.minor.y = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks.y = element_blank(), 
-    axis.ticks.x = element_blank()
-  )
-plot_grid(
-  plot_grid(
-    ngsReports:::.emptyPlot(""), c, ngsReports:::.emptyPlot(""),
-    rel_widths = c(0.04, 0.86, 0.1), 
-    nrow = 1
-  ),
-  plot_grid(a, b, rel_widths = c(0.9, 0.1), align = "h"),
-  rel_heights = c(0.1, 0.9), nrow = 2, align = "v", axis = "r"
-)
-```
-
-```{r cleanup_4, results='hide'}
-rm(gi)
-rm(cis_int)
-rm(fdr)
-rm(keepInt)
-gc()
-```
-
-## `r bin_sizes[[5]]/1e3`kb Bins {.tabset}
-
-```{r bins_5}
-sz <- bin_sizes[[5]]
-bins <- import.bed(
-  here::here(
-    "output/hic_pro//matrix/raw",
-    glue("merged_{sz}_abs.bed.gz")
-  ),
-  seqinfo = sq
-)
-```
-
-```{r load_interactions_5}
-cis_int <- vroom(
-  here::here(
-    "output/MaxHiC",
-    glue("{sz}/cis_interactions.txt.gz")
-  ),
-  col_types = "dddd-d--"
-)
-fdr <- p.adjust(exp(-cis_int$neg_ln_p_val), "fdr")
-keepInt <- fdr < alpha
-```
-
-By default, any bin pairs with no observed interactions were excluded from the Max-HiC output.
-Using `r sz/1e3`kb bins, a total of `r comma(nrow(cis_int))` non-zero interactions were observed between bin pairs.
-The median observed interaction count was `r median(cis_int$observed_interactions)`, whilst the maximum was `r max(cis_int$observed_interactions)`.
-
-By default, the FDR provided by Max-HiC is incorrect and was ignored.
-The MaxHiC output was defined as a `GInteractions` object, with correct FDR added and interactions filtered to only include those with an FDR < `r alpha`.
-
-```{r form_gi_5}
-gi <- GInteractions(
-  anchor1 = bins[as.integer(cis_int$bin1ID[keepInt])],
-  anchor2 = bins[as.integer(cis_int$bin2ID[keepInt])],
-  counts = as.integer(cis_int$observed_interactions[keepInt]),
-  exp_interactions = cis_int$exp_interactions[keepInt],
-  p = exp(-cis_int$neg_ln_p_val)[keepInt],
-  fdr = fdr[keepInt]
-)
-gi$bin_size <- Rle(sz, sum(keepInt))
-gi$distance <- pairdist(gi)
-gi$logObsExp <- log2(gi$counts / gi$exp_interactions)
-seqinfo(gi) <- sq
-write_rds(
-  gi,
-  here::here("output/MaxHiC", glue("gi_{sz}_cis.rds")),
-  compress = "gz"
-)
-```
-
-After filtering interactions to only those considered significant:
-
-- `r comma(length(gi))` bin-pair interactions were retained. This represented `r percent(mean(keepInt), accuracy = 0.01)` of the total identified.
-- The observed interactions between retained bin-pairs ranged between `r pander(range(gi$counts))`
-- The log~2~ ratio of of observed to expected counts ranged between `r pander(round(range(gi$logObsExp), 2))`. These values represent enrichment for interactions well above that expected by the background model.
-- The median interaction distance was `r round(median(gi$distance)/1e3, 1)`kb
-- The longest interaction was between bins separated by `r round(max(gi$distance)/1e6, 1)`Mb
-
-### Interaction Summary
-
-```{r plot_interactions_5, fig.height = 5, fig.width = 9, fig.cap = glue("*Genomic Distribution of significant interactions using {sz/1e3}kb bins*")}
-a <- gi %>%
-  anchors("first") %>%
-  seqnames() %>%
-  table() %>%
-  enframe(
-    name = "chr",
-    value = "count"
-  ) %>%
-  mutate(
-    chr = str_remove_all(chr, "chr"),
-    chr = fct_inorder(chr),
-    count = as.integer(count)
-  ) %>%
-  ggplot(
-    aes(chr, count)
-  ) +
-  geom_col() +
-  labs(
-    x = "Chromosome",
-    y = glue("Total Significant Cis Interactions ({sz/1e3}kb bins)")
-  ) +
-  scale_y_continuous(expand = expansion(c(0, 0.05)), labels = comma)
- b <- gi %>%
-  anchors("first") %>%
-  seqnames() %>%
-  table() %>%
-  enframe(
-    name = "seqnames",
-    value = "count"
-  ) %>%
-  mutate(
-    seqnames =factor(seqnames, levels = seqlevels(sq)),
-    count = as.integer(count)
-  ) %>% 
-  left_join(
-    tibble(
-      seqnames = seqnames(sq),
-      seqlengths = seqlengths(sq)
-    )
-  ) %>% 
-  mutate(
-    count_per_mb = count / (seqlengths / 1e6),
-    chr = str_remove_all(seqnames, "chr"),
-    chr = fct_inorder(chr)
-  ) %>%
-  ggplot(
-    aes(chr, count_per_mb)
-  ) +
-  geom_col() +
-  labs(
-    x = "Chromosome",
-    y = glue("Significant Cis Interactions per Mb ({sz/1e3}kb bins)")
-  ) +
-  scale_y_continuous(expand = expansion(c(0, 0.05)))
-  plot_grid(a, b, labels = c("A", "B"))
-```
-
-### Interaction Distances
-
-```{r plot_distances_5,fig.height=6, fig.width = 9, fig.cap = glue("*Relationship between counts and distance using {sz/1e3}kb bins*")}
-a <- mcols(gi) %>% 
-  as.data.frame %>% 
-  ggplot(aes(distance/1e3, counts)) + 
-  geom_point(alpha = 0.4) + 
-  geom_smooth(se = FALSE, method = "gam", formula = y ~ s(x, bs = "cs")) +
-  scale_x_log10(labels = comma) +
-  scale_y_log10() +
-  labs(
-    x = "Distance between bins (kb)",
-    y = "Reads Spanning Bins"
-  )
-b <- mcols(gi) %>%
-  as.data.frame %>% 
-  ggplot(aes(counts, stat(density))) + 
-  geom_density() + 
-  coord_flip() + 
-  labs(x = c(), y = "") +
-  scale_x_log10() +
-  theme(
-    axis.text = element_blank(), 
-    panel.grid.major.x =  element_blank(),
-    panel.grid.minor.x = element_blank(),
-    axis.ticks.x = element_blank(),
-    axis.ticks.y = element_blank()
-    )
-c <- mcols(gi) %>%
-  as.data.frame %>% 
-  ggplot(aes(distance/1e3, stat(density))) + 
-  geom_density() + 
-  scale_x_log10() +
-  labs(x = c(), y = "") +
-  theme(
-    panel.grid.major.y = element_blank(),
-    panel.grid.minor.y = element_blank(),
-    axis.text = element_blank(),
-    axis.ticks.y = element_blank(), 
-    axis.ticks.x = element_blank()
-  )
-plot_grid(
-  plot_grid(
-    ngsReports:::.emptyPlot(""), c, ngsReports:::.emptyPlot(""),
-    rel_widths = c(0.04, 0.86, 0.1), 
-    nrow = 1
-  ),
-  plot_grid(a, b, rel_widths = c(0.9, 0.1), align = "h"),
-  rel_heights = c(0.1, 0.9), nrow = 2, align = "v", axis = "r"
-)
-```
-
-```{r cleanup_5, results='hide'}
-rm(gi)
-rm(cis_int)
-rm(fdr)
-rm(keepInt)
-gc()
-```

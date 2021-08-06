@@ -1,0 +1,973 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+
+
+
+<title>QC On Trimmed Data</title>
+
+<script src="site_libs/header-attrs-2.9/header-attrs.js"></script>
+<script src="site_libs/jquery-3.5.1/jquery.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link href="site_libs/bootstrap-3.3.5/css/cosmo.min.css" rel="stylesheet" />
+<script src="site_libs/bootstrap-3.3.5/js/bootstrap.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/html5shiv.min.js"></script>
+<script src="site_libs/bootstrap-3.3.5/shim/respond.min.js"></script>
+<style>h1 {font-size: 34px;}
+       h1.title {font-size: 38px;}
+       h2 {font-size: 30px;}
+       h3 {font-size: 24px;}
+       h4 {font-size: 18px;}
+       h5 {font-size: 16px;}
+       h6 {font-size: 12px;}
+       code {color: inherit; background-color: rgba(0, 0, 0, 0.04);}
+       pre:not([class]) { background-color: white }</style>
+<script src="site_libs/jqueryui-1.11.4/jquery-ui.min.js"></script>
+<link href="site_libs/tocify-1.9.1/jquery.tocify.css" rel="stylesheet" />
+<script src="site_libs/tocify-1.9.1/jquery.tocify.js"></script>
+<script src="site_libs/navigation-1.1/tabsets.js"></script>
+<script src="site_libs/navigation-1.1/codefolding.js"></script>
+<link href="site_libs/highlightjs-9.12.0/textmate.css" rel="stylesheet" />
+<script src="site_libs/highlightjs-9.12.0/highlight.js"></script>
+<script src="site_libs/htmlwidgets-1.5.3/htmlwidgets.js"></script>
+<script src="site_libs/plotly-binding-4.9.4.1/plotly.js"></script>
+<script src="site_libs/typedarray-0.1/typedarray.min.js"></script>
+<link href="site_libs/crosstalk-1.1.1/css/crosstalk.css" rel="stylesheet" />
+<script src="site_libs/crosstalk-1.1.1/js/crosstalk.min.js"></script>
+<link href="site_libs/plotly-htmlwidgets-css-1.57.1/plotly-htmlwidgets.css" rel="stylesheet" />
+<script src="site_libs/plotly-main-1.57.1/plotly-latest.min.js"></script>
+
+<link rel="icon" href="https://github.com/workflowr/workflowr-assets/raw/master/img/reproducible.png">
+<!-- Add a small amount of space between sections. -->
+<style type="text/css">
+div.section {
+  padding-top: 12px;
+}
+</style>
+
+
+
+<style type="text/css">
+  code{white-space: pre-wrap;}
+  span.smallcaps{font-variant: small-caps;}
+  span.underline{text-decoration: underline;}
+  div.column{display: inline-block; vertical-align: top; width: 50%;}
+  div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+  ul.task-list{list-style: none;}
+    </style>
+
+<style type="text/css">code{white-space: pre;}</style>
+<script type="text/javascript">
+if (window.hljs) {
+  hljs.configure({languages: []});
+  hljs.initHighlightingOnLoad();
+  if (document.readyState && document.readyState === "complete") {
+    window.setTimeout(function() { hljs.initHighlighting(); }, 0);
+  }
+}
+</script>
+
+
+
+
+
+
+
+
+<style type = "text/css">
+.main-container {
+  max-width: 940px;
+  margin-left: auto;
+  margin-right: auto;
+}
+img {
+  max-width:100%;
+}
+.tabbed-pane {
+  padding-top: 12px;
+}
+.html-widget {
+  margin-bottom: 20px;
+}
+button.code-folding-btn:focus {
+  outline: none;
+}
+summary {
+  display: list-item;
+}
+pre code {
+  padding: 0;
+}
+</style>
+
+
+<style type="text/css">
+.dropdown-submenu {
+  position: relative;
+}
+.dropdown-submenu>.dropdown-menu {
+  top: 0;
+  left: 100%;
+  margin-top: -6px;
+  margin-left: -1px;
+  border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover>.dropdown-menu {
+  display: block;
+}
+.dropdown-submenu>a:after {
+  display: block;
+  content: " ";
+  float: right;
+  width: 0;
+  height: 0;
+  border-color: transparent;
+  border-style: solid;
+  border-width: 5px 0 5px 5px;
+  border-left-color: #cccccc;
+  margin-top: 5px;
+  margin-right: -10px;
+}
+.dropdown-submenu:hover>a:after {
+  border-left-color: #adb5bd;
+}
+.dropdown-submenu.pull-left {
+  float: none;
+}
+.dropdown-submenu.pull-left>.dropdown-menu {
+  left: -100%;
+  margin-left: 10px;
+  border-radius: 6px 0 6px 6px;
+}
+</style>
+
+<script type="text/javascript">
+// manage active state of menu based on current page
+$(document).ready(function () {
+  // active menu anchor
+  href = window.location.pathname
+  href = href.substr(href.lastIndexOf('/') + 1)
+  if (href === "")
+    href = "index.html";
+  var menuAnchor = $('a[href="' + href + '"]');
+
+  // mark it active
+  menuAnchor.tab('show');
+
+  // if it's got a parent navbar menu mark it active as well
+  menuAnchor.closest('li.dropdown').addClass('active');
+
+  // Navbar adjustments
+  var navHeight = $(".navbar").first().height() + 15;
+  var style = document.createElement('style');
+  var pt = "padding-top: " + navHeight + "px; ";
+  var mt = "margin-top: -" + navHeight + "px; ";
+  var css = "";
+  // offset scroll position for anchor links (for fixed navbar)
+  for (var i = 1; i <= 6; i++) {
+    css += ".section h" + i + "{ " + pt + mt + "}\n";
+  }
+  style.innerHTML = "body {" + pt + "padding-bottom: 40px; }\n" + css;
+  document.head.appendChild(style);
+});
+</script>
+
+<!-- tabsets -->
+
+<style type="text/css">
+.tabset-dropdown > .nav-tabs {
+  display: inline-table;
+  max-height: 500px;
+  min-height: 44px;
+  overflow-y: auto;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+}
+
+.tabset-dropdown > .nav-tabs > li.active:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li.active:before {
+  content: "&#xe258;";
+  border: none;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open:before {
+  content: "";
+  font-family: 'Glyphicons Halflings';
+  display: inline-block;
+  padding: 10px;
+  border-right: 1px solid #ddd;
+}
+
+.tabset-dropdown > .nav-tabs > li.active {
+  display: block;
+}
+
+.tabset-dropdown > .nav-tabs > li > a,
+.tabset-dropdown > .nav-tabs > li > a:focus,
+.tabset-dropdown > .nav-tabs > li > a:hover {
+  border: none;
+  display: inline-block;
+  border-radius: 4px;
+  background-color: transparent;
+}
+
+.tabset-dropdown > .nav-tabs.nav-tabs-open > li {
+  display: block;
+  float: none;
+}
+
+.tabset-dropdown > .nav-tabs > li {
+  display: none;
+}
+</style>
+
+<!-- code folding -->
+<style type="text/css">
+.code-folding-btn { margin-bottom: 4px; }
+</style>
+
+
+
+<style type="text/css">
+
+#TOC {
+  margin: 25px 0px 20px 0px;
+}
+@media (max-width: 768px) {
+#TOC {
+  position: relative;
+  width: 100%;
+}
+}
+
+@media print {
+.toc-content {
+  /* see https://github.com/w3c/csswg-drafts/issues/4434 */
+  float: right;
+}
+}
+
+.toc-content {
+  padding-left: 30px;
+  padding-right: 40px;
+}
+
+div.main-container {
+  max-width: 1200px;
+}
+
+div.tocify {
+  width: 20%;
+  max-width: 260px;
+  max-height: 85%;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+  div.tocify {
+    width: 25%;
+  }
+}
+
+@media (max-width: 767px) {
+  div.tocify {
+    width: 100%;
+    max-width: none;
+  }
+}
+
+.tocify ul, .tocify li {
+  line-height: 20px;
+}
+
+.tocify-subheader .tocify-item {
+  font-size: 0.90em;
+}
+
+.tocify .list-group-item {
+  border-radius: 0px;
+}
+
+
+</style>
+
+
+
+</head>
+
+<body>
+
+
+<div class="container-fluid main-container">
+
+
+<!-- setup 3col/9col grid for toc_float and main content  -->
+<div class="row">
+<div class="col-xs-12 col-sm-4 col-md-3">
+<div id="TOC" class="tocify">
+</div>
+</div>
+
+<div class="toc-content col-xs-12 col-sm-8 col-md-9">
+
+
+
+
+<div class="navbar navbar-default  navbar-fixed-top" role="navigation">
+  <div class="container">
+    <div class="navbar-header">
+      <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar">
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+        <span class="icon-bar"></span>
+      </button>
+      <a class="navbar-brand" href="index.html">HiC Data Preparation</a>
+    </div>
+    <div id="navbar" class="navbar-collapse collapse">
+      <ul class="nav navbar-nav">
+        <li class="dropdown">
+  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
+    QC
+     
+    <span class="caret"></span>
+  </a>
+  <ul class="dropdown-menu" role="menu">
+    <li>
+      <a href="qc_raw.html">Raw Data</a>
+    </li>
+    <li>
+      <a href="qc_trimmed.html">Trimmed Data</a>
+    </li>
+    <li>
+      <a href="qc_hic.html">HiC Data</a>
+    </li>
+  </ul>
+</li>
+<li>
+  <a href="define_interactions.html">MaxHiC Output</a>
+</li>
+      </ul>
+      <ul class="nav navbar-nav navbar-right">
+        
+      </ul>
+    </div><!--/.nav-collapse -->
+  </div><!--/.container -->
+</div><!--/.navbar -->
+
+<div id="header">
+
+<div class="btn-group pull-right float-right">
+<button type="button" class="btn btn-default btn-xs btn-secondary btn-sm dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"><span>Code</span> <span class="caret"></span></button>
+<ul class="dropdown-menu dropdown-menu-right" style="min-width: 50px;">
+<li><a id="rmd-show-all-code" href="#">Show All Code</a></li>
+<li><a id="rmd-hide-all-code" href="#">Hide All Code</a></li>
+</ul>
+</div>
+
+
+
+<h1 class="title toc-ignore">QC On Trimmed Data</h1>
+<h4 class="author"><div class="line-block">Stephen Pederson<br />
+Dame Roma Mitchell Cancer Research Laboratories<br />
+Adelaide Medical School<br />
+University of Adelaide</div></h4>
+<h4 class="date">06 August, 2021</h4>
+
+</div>
+
+
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+</button>
+</p>
+<div id="workflowr-report" class="collapse">
+<ul class="nav nav-tabs">
+<li class="active">
+<a data-toggle="tab" href="#summary">Summary</a>
+</li>
+<li>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> </a>
+</li>
+<li>
+<a data-toggle="tab" href="#versions">Past versions</a>
+</li>
+</ul>
+<div class="tab-content">
+<div id="summary" class="tab-pane fade in active">
+<p>
+<strong>Last updated:</strong> 2021-08-06
+</p>
+<p>
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
+</p>
+<p>
+<strong>Knit directory:</strong> <code>snakemake_hic/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
+</p>
+<p>
+This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis was created with <a
+  href="https://github.com/jdblischak/workflowr">workflowr</a> (version 1.6.2). The <em>Checks</em> tab describes the reproducibility checks that were applied when the results were created. The <em>Past versions</em> tab lists the development history.
+</p>
+<hr>
+</div>
+<div id="checks" class="tab-pane fade">
+<div id="workflowr-checks" class="panel-group">
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
+</p>
+</div>
+<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongEnvironmentstrongempty"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Environment:</strong> empty </a>
+</p>
+</div>
+<div id="strongEnvironmentstrongempty" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! The global environment was empty. Objects defined in the global environment can affect the analysis in your R Markdown file in unknown ways. For reproduciblity it’s best to always run the code in an empty environment.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSeedstrongcodesetseed20210803code"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Seed:</strong> <code>set.seed(20210803)</code> </a>
+</p>
+</div>
+<div id="strongSeedstrongcodesetseed20210803code" class="panel-collapse collapse">
+<div class="panel-body">
+<p>The command <code>set.seed(20210803)</code> was run prior to running the code in the R Markdown file. Setting a seed ensures that any results that rely on randomness, e.g. subsampling or permutations, are reproducible.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongSessioninformationstrongrecorded"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Session information:</strong> recorded </a>
+</p>
+</div>
+<div id="strongSessioninformationstrongrecorded" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Recording the operating system, R version, and package versions is critical for reproducibility.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongCachestrongnone"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Cache:</strong> none </a>
+</p>
+</div>
+<div id="strongCachestrongnone" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Nice! There were no cached chunks for this analysis, so you can be confident that you successfully produced the results during this run.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongFilepathsstrongrelative"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>File paths:</strong> relative </a>
+</p>
+</div>
+<div id="strongFilepathsstrongrelative" class="panel-collapse collapse">
+<div class="panel-body">
+<p>Great job! Using relative paths to the files within your workflowr project makes it easier to run your code on other machines.</p>
+</div>
+</div>
+</div>
+<div class="panel panel-default">
+<div class="panel-heading">
+<p class="panel-title">
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictreeabd2d21062ab2d5cf91b8244ef423f329dc1f56atargetblankabd2d21a"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/steveped/snakemake_hic/tree/abd2d21062ab2d5cf91b8244ef423f329dc1f56a" target="_blank">abd2d21</a> </a>
+</p>
+</div>
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictreeabd2d21062ab2d5cf91b8244ef423f329dc1f56atargetblankabd2d21a" class="panel-collapse collapse">
+<div class="panel-body">
+<p>
+Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
+</p>
+<p>
+The results in this page were generated with repository version <a href="https://github.com/steveped/snakemake_hic/tree/abd2d21062ab2d5cf91b8244ef423f329dc1f56a" target="_blank">abd2d21</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+</p>
+<p>
+Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
+</p>
+<pre><code>
+Ignored files:
+    Ignored:    .snakemake/
+    Ignored:    .vscode/
+    Ignored:    data/hic/
+    Ignored:    logs/
+    Ignored:    scripts/MaxHiC/
+
+Untracked files:
+    Untracked:  config/hicpro-config.txt
+    Untracked:  data/raw/FastQC/
+    Untracked:  data/trimmed/
+    Untracked:  output/
+    Untracked:  snakemake_hic.Rproj
+
+Unstaged changes:
+    Modified:   Snakefile
+    Modified:   config/config.yml
+    Modified:   rules/maxhic.smk
+
+</code></pre>
+<p>
+Note that any generated files, e.g. HTML, png, CSS, etc., are not included in this status report because it is ok for generated content to have uncommitted changes.
+</p>
+</div>
+</div>
+</div>
+</div>
+<hr>
+</div>
+<div id="versions" class="tab-pane fade">
+
+<p>
+These are the previous versions of the repository in which changes were made to the R Markdown (<code>analysis/qc_trimmed.Rmd</code>) and HTML (<code>docs/qc_trimmed.html</code>) files. If you’ve configured a remote Git repository (see <code>?wflow_git_remote</code>), click on the hyperlinks in the table below to view the files as they were in that past version.
+</p>
+<div class="table-responsive">
+<table class="table table-condensed table-hover">
+<thead>
+<tr>
+<th>
+File
+</th>
+<th>
+Version
+</th>
+<th>
+Author
+</th>
+<th>
+Date
+</th>
+<th>
+Message
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+Rmd
+</td>
+<td>
+<a href="https://github.com/steveped/snakemake_hic/blob/f3c7bab0b7afcdbd16613d4f261f9362c5acb388/analysis/qc_trimmed.Rmd" target="_blank">f3c7bab</a>
+</td>
+<td>
+Steve Pederson
+</td>
+<td>
+2021-08-06
+</td>
+<td>
+Migrated working pipeline from Gar15
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<hr>
+</div>
+</div>
+</div>
+<pre class="r"><code>library(ngsReports)
+library(tidyverse)
+library(yaml)
+library(scales)
+library(pander)
+library(glue)
+library(cowplot)
+library(plotly)</code></pre>
+<pre class="r"><code>panderOptions(&quot;table.split.table&quot;, Inf)
+panderOptions(&quot;big.mark&quot;, &quot;,&quot;)
+theme_set(theme_bw())</code></pre>
+<pre class="r"><code>config &lt;- here::here(&quot;config/config.yml&quot;) %&gt;%
+  read_yaml()</code></pre>
+<pre class="r"><code>samples &lt;- config$samples %&gt;%
+  here::here() %&gt;%
+  read_tsv() %&gt;%
+  mutate(
+    R1 = config$hicpro$pair1_ext,
+    R2 = config$hicpro$pair2_ext,
+    suffix = config$suffix
+  ) %&gt;%
+  pivot_longer(
+    cols = c(&quot;R1&quot;, &quot;R2&quot;),
+    names_to = &quot;reads&quot;,
+    values_to = &quot;tag&quot;
+  ) %&gt;% 
+  unite(
+    Filename, file, tag, suffix, sep = &quot;&quot;
+  ) %&gt;% 
+  unite(
+    label, sample, reads, remove = FALSE
+  ) %&gt;%
+  mutate_if(
+    function(x){length(unique(x)) &lt; length(x)},
+    as.factor
+  )</code></pre>
+<pre class="r"><code>fh &lt;- round(6 + nrow(samples) / 7, 0)</code></pre>
+<div id="quality-assessment-on-trimmed-data" class="section level1 tabset">
+<h1 class="tabset">Quality Assessment on Trimmed Data</h1>
+<pre class="r"><code>rawFqc &lt;- here::here(&quot;data/raw/FastQC&quot;) %&gt;%
+  list.files(pattern = &quot;fastqc.zip&quot;, recursive = TRUE, full.names = TRUE) %&gt;%
+  FastqcDataList() %&gt;%
+  .[fqName(.) %in% samples$Filename]
+trimFqc &lt;- here::here(&quot;data/trimmed/FastQC&quot;) %&gt;%
+  list.files(pattern = &quot;fastqc.zip&quot;, recursive = TRUE, full.names = TRUE) %&gt;%
+  FastqcDataList() %&gt;%
+  .[fqName(.) %in% samples$Filename]</code></pre>
+<pre class="r"><code>maxAc &lt;- list(
+    getModule(trimFqc, &quot;Adapter&quot;) %&gt;% 
+      mutate(step = &quot;trimmed&quot;),
+    getModule(rawFqc, &quot;Adapter&quot;) %&gt;% 
+      mutate(step = &quot;raw&quot;)
+  ) %&gt;% 
+  bind_rows() %&gt;% 
+  pivot_longer(-any_of(c(&quot;Filename&quot;, &quot;Position&quot;, &quot;step&quot;))) %&gt;% 
+  group_by(Filename, Position, step) %&gt;% 
+  summarise(Total = sum(value), .groups = &quot;drop&quot;) %&gt;% 
+  group_by(step) %&gt;% 
+  summarise(max = percent(max(Total), accuracy = 0.01)) </code></pre>
+<p>In the workflow, trimming was performed using the tool <code>AdapterRemoval</code> with the settings:</p>
+<ul>
+<li>Adapter Sequences:
+<ul>
+<li>AGATCGGAAGAGCACACGTCTGAACTCCAGTCACNNNNNNATCTCGTATGCCGTCTTCTGCTTG</li>
+<li>AGATCGGAAGAGCGTCGTGTAGGGAAAGAGTGTAGATCTCGGTGGTCGCCGTATCATT</li>
+</ul></li>
+<li>Minimum length after trimming: 35</li>
+<li>Minimum quality score after trimming: 30</li>
+<li>Maximum allowable number of <code>N</code> bases to allow: 1</li>
+</ul>
+<p>After trimming, the library showing the highest level of possible adapter content identified 0.04% of reads as containing possible adapter sequences.</p>
+<div id="library-sizes" class="section level2">
+<h2>Library Sizes</h2>
+<pre class="r"><code>readTotals(rawFqc) %&gt;%
+  rename(Raw = Total_Sequences) %&gt;%
+  left_join(
+    readTotals(trimFqc) %&gt;%
+      rename(Trimmed = Total_Sequences)
+  ) %&gt;%
+  left_join(samples) %&gt;% 
+  mutate(
+    Discarded = Raw - Trimmed,
+    Remaining = percent(Trimmed / Raw, accuracy = 0.01)
+  ) %&gt;% 
+  dplyr::select(
+    Sample = sample, Library = reads, Raw, Trimmed, Discarded, Remaining
+  ) %&gt;% 
+  pander(
+    justify = &quot;llrrrr&quot;,
+    caption = &quot;*Summary of results from trimming*&quot;
+  )</code></pre>
+<table style="width:93%;">
+<caption><em>Summary of results from trimming</em></caption>
+<colgroup>
+<col width="18%" />
+<col width="13%" />
+<col width="13%" />
+<col width="13%" />
+<col width="16%" />
+<col width="16%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th align="left">Sample</th>
+<th align="left">Library</th>
+<th align="right">Raw</th>
+<th align="right">Trimmed</th>
+<th align="right">Discarded</th>
+<th align="right">Remaining</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">dixon_2M_2</td>
+<td align="left">R1</td>
+<td align="right">250,000</td>
+<td align="right">222,928</td>
+<td align="right">27,072</td>
+<td align="right">89.17%</td>
+</tr>
+<tr class="even">
+<td align="left">dixon_2M_2</td>
+<td align="left">R2</td>
+<td align="right">250,000</td>
+<td align="right">222,928</td>
+<td align="right">27,072</td>
+<td align="right">89.17%</td>
+</tr>
+<tr class="odd">
+<td align="left">dixon_2M</td>
+<td align="left">R1</td>
+<td align="right">250,000</td>
+<td align="right">222,251</td>
+<td align="right">27,749</td>
+<td align="right">88.90%</td>
+</tr>
+<tr class="even">
+<td align="left">dixon_2M</td>
+<td align="left">R2</td>
+<td align="right">250,000</td>
+<td align="right">222,251</td>
+<td align="right">27,749</td>
+<td align="right">88.90%</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="fastqc-summary" class="section level2">
+<h2>FastQC Summary</h2>
+<pre class="r"><code>a &lt;- plotSummary(rawFqc, pattern = config$suffix) 
+b &lt;- plotSummary(trimFqc, pattern = config$suffix) +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title.y = element_blank()
+  )
+plot_grid(
+  a + theme(legend.position = &quot;none&quot;),
+  b + theme(legend.position = &quot;none&quot;),
+  labels = c(&quot;A&quot;, &quot;B&quot;),
+  nrow = 1,
+  rel_widths = c(1.6, 1)
+) +
+  draw_plot(
+    plot = get_legend(a), 
+    x = -0.4, 
+    y = -0.4
+  )</code></pre>
+<div class="figure" style="text-align: center">
+<img src="figure/qc_trimmed.Rmd/plotSummary-1.png" alt="*Comparison of FastQC summaries A) before and B), after trimming*" width="960" />
+<p class="caption">
+<em>Comparison of FastQC summaries A) before and B), after trimming</em>
+</p>
+</div>
+</div>
+<div id="sequence-length-distribution" class="section level2">
+<h2>Sequence Length Distribution</h2>
+<pre class="r"><code>ggplotly(
+  plotSeqLengthDistn(trimFqc, plotType = &quot;cdf&quot;) +
+    scale_x_discrete(
+      breaks = seq(35, 150, by = 5)
+    ) +
+    scale_colour_brewer(palette = &quot;Paired&quot;) +
+    theme(axis.text.x = element_text(angle = 0))
+)</code></pre>
+<div class="figure" style="text-align: center">
+<div id="htmlwidget-495eed38db8940ef6515" style="width:960px;height:672px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-495eed38db8940ef6515">{"x":{"data":[{"x":[1,2,3,4],"y":[0,0.0171,1,1],"text":["Filename: SRR400264_00_R1<br />Filename: SRR400264_00_R1<br />Length: <35<br />Cumulative: 0.0000","Filename: SRR400264_00_R1<br />Filename: SRR400264_00_R1<br />Length: 35<br />Cumulative: 0.0171","Filename: SRR400264_00_R1<br />Filename: SRR400264_00_R1<br />Length: 36<br />Cumulative: 1.0000","Filename: SRR400264_00_R1<br />Filename: SRR400264_00_R1<br />Length: 36+<br />Cumulative: 1.0000"],"type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"rgba(166,206,227,1)","dash":"solid"},"hoveron":"points","name":"SRR400264_00_R1","legendgroup":"SRR400264_00_R1","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1,2,3,4],"y":[0,0.03,1,1],"text":["Filename: SRR400264_00_R2<br />Filename: SRR400264_00_R2<br />Length: <35<br />Cumulative: 0.0000","Filename: SRR400264_00_R2<br />Filename: SRR400264_00_R2<br />Length: 35<br />Cumulative: 0.0300","Filename: SRR400264_00_R2<br />Filename: SRR400264_00_R2<br />Length: 36<br />Cumulative: 1.0000","Filename: SRR400264_00_R2<br />Filename: SRR400264_00_R2<br />Length: 36+<br />Cumulative: 1.0000"],"type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"rgba(31,120,180,1)","dash":"solid"},"hoveron":"points","name":"SRR400264_00_R2","legendgroup":"SRR400264_00_R2","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1,2,3,4],"y":[0,0.0183,1,1],"text":["Filename: SRR400264_01_R1<br />Filename: SRR400264_01_R1<br />Length: <35<br />Cumulative: 0.0000","Filename: SRR400264_01_R1<br />Filename: SRR400264_01_R1<br />Length: 35<br />Cumulative: 0.0183","Filename: SRR400264_01_R1<br />Filename: SRR400264_01_R1<br />Length: 36<br />Cumulative: 1.0000","Filename: SRR400264_01_R1<br />Filename: SRR400264_01_R1<br />Length: 36+<br />Cumulative: 1.0000"],"type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"rgba(178,223,138,1)","dash":"solid"},"hoveron":"points","name":"SRR400264_01_R1","legendgroup":"SRR400264_01_R1","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1,2,3,4],"y":[0,0.0329,1,1],"text":["Filename: SRR400264_01_R2<br />Filename: SRR400264_01_R2<br />Length: <35<br />Cumulative: 0.0000","Filename: SRR400264_01_R2<br />Filename: SRR400264_01_R2<br />Length: 35<br />Cumulative: 0.0329","Filename: SRR400264_01_R2<br />Filename: SRR400264_01_R2<br />Length: 36<br />Cumulative: 1.0000","Filename: SRR400264_01_R2<br />Filename: SRR400264_01_R2<br />Length: 36+<br />Cumulative: 1.0000"],"type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"rgba(51,160,44,1)","dash":"solid"},"hoveron":"points","name":"SRR400264_01_R2","legendgroup":"SRR400264_01_R2","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":26.4370515329419,"r":7.30593607305936,"b":40.3913894324853,"l":48.9497716894977},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[0.4,4.6],"tickmode":"array","ticktext":["35"],"tickvals":[2],"categoryorder":"array","categoryarray":["35"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y","title":{"text":"Sequence Length","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-0.05,1.05],"tickmode":"array","ticktext":["0%","25%","50%","75%","100%"],"tickvals":[0,0.25,0.5,0.75,1],"categoryorder":"array","categoryarray":["0%","25%","50%","75%","100%"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"x","title":{"text":"Cumulative (%)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"transparent","line":{"color":"rgba(51,51,51,1)","width":0.66417600664176,"linetype":"solid"},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":true,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895},"y":0.976799775028121},"annotations":[{"text":"Filename","x":1.02,"y":1,"showarrow":false,"ax":0,"ay":0,"font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xref":"paper","yref":"paper","textangle":-0,"xanchor":"left","yanchor":"bottom","legendTitle":true}],"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","showSendToCloud":false},"source":"A","attrs":{"4e073c53ecb":{"colour":{},"x":{},"y":{},"type":"scatter"}},"cur_data":"4e073c53ecb","visdat":{"4e073c53ecb":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<p class="caption">
+<em>Distribution of read lengths after trimming. R2 libraries tended to contain shorter reads</em>
+</p>
+</div>
+</div>
+<div id="gc-content" class="section level2">
+<h2>GC Content</h2>
+<pre class="r"><code>plotGcContent(trimFqc, plotType = &quot;line&quot;, gcType = &quot;Genome&quot;, usePlotly = TRUE)</code></pre>
+<div class="figure" style="text-align: center">
+<div id="htmlwidget-6476a101521ead452af5" style="width:960px;height:672px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-6476a101521ead452af5">{"x":{"data":[{"x":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100],"y":[0,0,0,0,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.01,0.02,0.02,0.03,0.04,0.06,0.1,0.14,0.22,0.31,0.44,0.6,0.8,1.04,1.29,1.58,1.87,2.17,2.46,2.74,2.99,3.22,3.43,3.62,3.77,3.91,3.97,3.97,3.91,3.79,3.61,3.41,3.2,3,2.84,2.74,2.65,2.54,2.44,2.3,2.13,1.96,1.81,1.66,1.53,1.41,1.29,1.15,0.99,0.84,0.7,0.58,0.47,0.39,0.33,0.27,0.21,0.17,0.14,0.11,0.09,0.07,0.06,0.05,0.04,0.04,0.03,0.03,0.02,0.02,0.02,0.01,0.01,0.01,0.01,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"text":["Filename: Theoretical Distribution<br />GC_Content:   0<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:   1<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:   2<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:   3<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:   4<br />Percent: 0.01","Filename: Theoretical Distribution<br />GC_Content:   5<br />Percent: 0.01","Filename: Theoretical Distribution<br />GC_Content:   6<br />Percent: 0.01","Filename: Theoretical Distribution<br />GC_Content:   7<br />Percent: 0.01","Filename: Theoretical Distribution<br />GC_Content:   8<br />Percent: 0.01","Filename: Theoretical Distribution<br />GC_Content:   9<br />Percent: 0.01","Filename: Theoretical Distribution<br />GC_Content:  10<br />Percent: 0.01","Filename: Theoretical Distribution<br />GC_Content:  11<br />Percent: 0.01","Filename: Theoretical Distribution<br />GC_Content:  12<br />Percent: 0.02","Filename: Theoretical Distribution<br />GC_Content:  13<br />Percent: 0.02","Filename: Theoretical Distribution<br />GC_Content:  14<br />Percent: 0.03","Filename: Theoretical Distribution<br />GC_Content:  15<br />Percent: 0.04","Filename: Theoretical Distribution<br />GC_Content:  16<br />Percent: 0.06","Filename: Theoretical Distribution<br />GC_Content:  17<br />Percent: 0.10","Filename: Theoretical Distribution<br />GC_Content:  18<br />Percent: 0.14","Filename: Theoretical Distribution<br />GC_Content:  19<br />Percent: 0.22","Filename: Theoretical Distribution<br />GC_Content:  20<br />Percent: 0.31","Filename: Theoretical Distribution<br />GC_Content:  21<br />Percent: 0.44","Filename: Theoretical Distribution<br />GC_Content:  22<br />Percent: 0.60","Filename: Theoretical Distribution<br />GC_Content:  23<br />Percent: 0.80","Filename: Theoretical Distribution<br />GC_Content:  24<br />Percent: 1.04","Filename: Theoretical Distribution<br />GC_Content:  25<br />Percent: 1.29","Filename: Theoretical Distribution<br />GC_Content:  26<br />Percent: 1.58","Filename: Theoretical Distribution<br />GC_Content:  27<br />Percent: 1.87","Filename: Theoretical Distribution<br />GC_Content:  28<br />Percent: 2.17","Filename: Theoretical Distribution<br />GC_Content:  29<br />Percent: 2.46","Filename: Theoretical Distribution<br />GC_Content:  30<br />Percent: 2.74","Filename: Theoretical Distribution<br />GC_Content:  31<br />Percent: 2.99","Filename: Theoretical Distribution<br />GC_Content:  32<br />Percent: 3.22","Filename: Theoretical Distribution<br />GC_Content:  33<br />Percent: 3.43","Filename: Theoretical Distribution<br />GC_Content:  34<br />Percent: 3.62","Filename: Theoretical Distribution<br />GC_Content:  35<br />Percent: 3.77","Filename: Theoretical Distribution<br />GC_Content:  36<br />Percent: 3.91","Filename: Theoretical Distribution<br />GC_Content:  37<br />Percent: 3.97","Filename: Theoretical Distribution<br />GC_Content:  38<br />Percent: 3.97","Filename: Theoretical Distribution<br />GC_Content:  39<br />Percent: 3.91","Filename: Theoretical Distribution<br />GC_Content:  40<br />Percent: 3.79","Filename: Theoretical Distribution<br />GC_Content:  41<br />Percent: 3.61","Filename: Theoretical Distribution<br />GC_Content:  42<br />Percent: 3.41","Filename: Theoretical Distribution<br />GC_Content:  43<br />Percent: 3.20","Filename: Theoretical Distribution<br />GC_Content:  44<br />Percent: 3.00","Filename: Theoretical Distribution<br />GC_Content:  45<br />Percent: 2.84","Filename: Theoretical Distribution<br />GC_Content:  46<br />Percent: 2.74","Filename: Theoretical Distribution<br />GC_Content:  47<br />Percent: 2.65","Filename: Theoretical Distribution<br />GC_Content:  48<br />Percent: 2.54","Filename: Theoretical Distribution<br />GC_Content:  49<br />Percent: 2.44","Filename: Theoretical Distribution<br />GC_Content:  50<br />Percent: 2.30","Filename: Theoretical Distribution<br />GC_Content:  51<br />Percent: 2.13","Filename: Theoretical Distribution<br />GC_Content:  52<br />Percent: 1.96","Filename: Theoretical Distribution<br />GC_Content:  53<br />Percent: 1.81","Filename: Theoretical Distribution<br />GC_Content:  54<br />Percent: 1.66","Filename: Theoretical Distribution<br />GC_Content:  55<br />Percent: 1.53","Filename: Theoretical Distribution<br />GC_Content:  56<br />Percent: 1.41","Filename: Theoretical Distribution<br />GC_Content:  57<br />Percent: 1.29","Filename: Theoretical Distribution<br />GC_Content:  58<br />Percent: 1.15","Filename: Theoretical Distribution<br />GC_Content:  59<br />Percent: 0.99","Filename: Theoretical Distribution<br />GC_Content:  60<br />Percent: 0.84","Filename: Theoretical Distribution<br />GC_Content:  61<br />Percent: 0.70","Filename: Theoretical Distribution<br />GC_Content:  62<br />Percent: 0.58","Filename: Theoretical Distribution<br />GC_Content:  63<br />Percent: 0.47","Filename: Theoretical Distribution<br />GC_Content:  64<br />Percent: 0.39","Filename: Theoretical Distribution<br />GC_Content:  65<br />Percent: 0.33","Filename: Theoretical Distribution<br />GC_Content:  66<br />Percent: 0.27","Filename: Theoretical Distribution<br />GC_Content:  67<br />Percent: 0.21","Filename: Theoretical Distribution<br />GC_Content:  68<br />Percent: 0.17","Filename: Theoretical Distribution<br />GC_Content:  69<br />Percent: 0.14","Filename: Theoretical Distribution<br />GC_Content:  70<br />Percent: 0.11","Filename: Theoretical Distribution<br />GC_Content:  71<br />Percent: 0.09","Filename: Theoretical Distribution<br />GC_Content:  72<br />Percent: 0.07","Filename: Theoretical Distribution<br />GC_Content:  73<br />Percent: 0.06","Filename: Theoretical Distribution<br />GC_Content:  74<br />Percent: 0.05","Filename: Theoretical Distribution<br />GC_Content:  75<br />Percent: 0.04","Filename: Theoretical Distribution<br />GC_Content:  76<br />Percent: 0.04","Filename: Theoretical Distribution<br />GC_Content:  77<br />Percent: 0.03","Filename: Theoretical Distribution<br />GC_Content:  78<br />Percent: 0.03","Filename: Theoretical Distribution<br />GC_Content:  79<br />Percent: 0.02","Filename: Theoretical Distribution<br />GC_Content:  80<br />Percent: 0.02","Filename: Theoretical Distribution<br />GC_Content:  81<br />Percent: 0.02","Filename: Theoretical Distribution<br />GC_Content:  82<br />Percent: 0.01","Filename: Theoretical Distribution<br />GC_Content:  83<br />Percent: 0.01","Filename: Theoretical Distribution<br />GC_Content:  84<br />Percent: 0.01","Filename: Theoretical Distribution<br />GC_Content:  85<br />Percent: 0.01","Filename: Theoretical Distribution<br />GC_Content:  86<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:  87<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:  88<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:  89<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:  90<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:  91<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:  92<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:  93<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:  94<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:  95<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:  96<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:  97<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:  98<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content:  99<br />Percent: 0.00","Filename: Theoretical Distribution<br />GC_Content: 100<br />Percent: 0.00"],"type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"rgba(0,0,0,1)","dash":"solid"},"hoveron":"points","name":"Theoretical Distribution","legendgroup":"Theoretical Distribution","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100],"y":[0.01,0.01,0.01,0.01,0.01,0.02,0.02,0.03,0.05,0.05,0.08,0.12,0.12,0.19,0.25,0.37,0.49,0.49,0.68,0.87,0.87,1.1,1.34,1.34,1.64,1.93,2.27,2.6,2.6,2.88,3.17,3.17,3.36,3.56,3.56,3.63,3.71,3.71,3.65,3.6,3.42,3.24,3.23,2.99,2.74,2.74,2.48,2.21,2.21,2,1.79,1.59,1.39,1.38,1.22,1.06,1.06,0.91,0.76,0.75,0.62,0.49,0.49,0.39,0.28,0.22,0.16,0.16,0.12,0.08,0.08,0.05,0.03,0.03,0.02,0.01,0.01,0.01,0.01,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"text":["Filename: SRR400264_00_R1<br />GC_Content:   0<br />Percent: 0.01","Filename: SRR400264_00_R1<br />GC_Content:   1<br />Percent: 0.01","Filename: SRR400264_00_R1<br />GC_Content:   2<br />Percent: 0.01","Filename: SRR400264_00_R1<br />GC_Content:   3<br />Percent: 0.01","Filename: SRR400264_00_R1<br />GC_Content:   4<br />Percent: 0.01","Filename: SRR400264_00_R1<br />GC_Content:   5<br />Percent: 0.02","Filename: SRR400264_00_R1<br />GC_Content:   6<br />Percent: 0.02","Filename: SRR400264_00_R1<br />GC_Content:   7<br />Percent: 0.03","Filename: SRR400264_00_R1<br />GC_Content:   8<br />Percent: 0.05","Filename: SRR400264_00_R1<br />GC_Content:   9<br />Percent: 0.05","Filename: SRR400264_00_R1<br />GC_Content:  10<br />Percent: 0.08","Filename: SRR400264_00_R1<br />GC_Content:  11<br />Percent: 0.12","Filename: SRR400264_00_R1<br />GC_Content:  12<br />Percent: 0.12","Filename: SRR400264_00_R1<br />GC_Content:  13<br />Percent: 0.19","Filename: SRR400264_00_R1<br />GC_Content:  14<br />Percent: 0.25","Filename: SRR400264_00_R1<br />GC_Content:  15<br />Percent: 0.37","Filename: SRR400264_00_R1<br />GC_Content:  16<br />Percent: 0.49","Filename: SRR400264_00_R1<br />GC_Content:  17<br />Percent: 0.49","Filename: SRR400264_00_R1<br />GC_Content:  18<br />Percent: 0.68","Filename: SRR400264_00_R1<br />GC_Content:  19<br />Percent: 0.87","Filename: SRR400264_00_R1<br />GC_Content:  20<br />Percent: 0.87","Filename: SRR400264_00_R1<br />GC_Content:  21<br />Percent: 1.10","Filename: SRR400264_00_R1<br />GC_Content:  22<br />Percent: 1.34","Filename: SRR400264_00_R1<br />GC_Content:  23<br />Percent: 1.34","Filename: SRR400264_00_R1<br />GC_Content:  24<br />Percent: 1.64","Filename: SRR400264_00_R1<br />GC_Content:  25<br />Percent: 1.93","Filename: SRR400264_00_R1<br />GC_Content:  26<br />Percent: 2.27","Filename: SRR400264_00_R1<br />GC_Content:  27<br />Percent: 2.60","Filename: SRR400264_00_R1<br />GC_Content:  28<br />Percent: 2.60","Filename: SRR400264_00_R1<br />GC_Content:  29<br />Percent: 2.88","Filename: SRR400264_00_R1<br />GC_Content:  30<br />Percent: 3.17","Filename: SRR400264_00_R1<br />GC_Content:  31<br />Percent: 3.17","Filename: SRR400264_00_R1<br />GC_Content:  32<br />Percent: 3.36","Filename: SRR400264_00_R1<br />GC_Content:  33<br />Percent: 3.56","Filename: SRR400264_00_R1<br />GC_Content:  34<br />Percent: 3.56","Filename: SRR400264_00_R1<br />GC_Content:  35<br />Percent: 3.63","Filename: SRR400264_00_R1<br />GC_Content:  36<br />Percent: 3.71","Filename: SRR400264_00_R1<br />GC_Content:  37<br />Percent: 3.71","Filename: SRR400264_00_R1<br />GC_Content:  38<br />Percent: 3.65","Filename: SRR400264_00_R1<br />GC_Content:  39<br />Percent: 3.60","Filename: SRR400264_00_R1<br />GC_Content:  40<br />Percent: 3.42","Filename: SRR400264_00_R1<br />GC_Content:  41<br />Percent: 3.24","Filename: SRR400264_00_R1<br />GC_Content:  42<br />Percent: 3.23","Filename: SRR400264_00_R1<br />GC_Content:  43<br />Percent: 2.99","Filename: SRR400264_00_R1<br />GC_Content:  44<br />Percent: 2.74","Filename: SRR400264_00_R1<br />GC_Content:  45<br />Percent: 2.74","Filename: SRR400264_00_R1<br />GC_Content:  46<br />Percent: 2.48","Filename: SRR400264_00_R1<br />GC_Content:  47<br />Percent: 2.21","Filename: SRR400264_00_R1<br />GC_Content:  48<br />Percent: 2.21","Filename: SRR400264_00_R1<br />GC_Content:  49<br />Percent: 2.00","Filename: SRR400264_00_R1<br />GC_Content:  50<br />Percent: 1.79","Filename: SRR400264_00_R1<br />GC_Content:  51<br />Percent: 1.59","Filename: SRR400264_00_R1<br />GC_Content:  52<br />Percent: 1.39","Filename: SRR400264_00_R1<br />GC_Content:  53<br />Percent: 1.38","Filename: SRR400264_00_R1<br />GC_Content:  54<br />Percent: 1.22","Filename: SRR400264_00_R1<br />GC_Content:  55<br />Percent: 1.06","Filename: SRR400264_00_R1<br />GC_Content:  56<br />Percent: 1.06","Filename: SRR400264_00_R1<br />GC_Content:  57<br />Percent: 0.91","Filename: SRR400264_00_R1<br />GC_Content:  58<br />Percent: 0.76","Filename: SRR400264_00_R1<br />GC_Content:  59<br />Percent: 0.75","Filename: SRR400264_00_R1<br />GC_Content:  60<br />Percent: 0.62","Filename: SRR400264_00_R1<br />GC_Content:  61<br />Percent: 0.49","Filename: SRR400264_00_R1<br />GC_Content:  62<br />Percent: 0.49","Filename: SRR400264_00_R1<br />GC_Content:  63<br />Percent: 0.39","Filename: SRR400264_00_R1<br />GC_Content:  64<br />Percent: 0.28","Filename: SRR400264_00_R1<br />GC_Content:  65<br />Percent: 0.22","Filename: SRR400264_00_R1<br />GC_Content:  66<br />Percent: 0.16","Filename: SRR400264_00_R1<br />GC_Content:  67<br />Percent: 0.16","Filename: SRR400264_00_R1<br />GC_Content:  68<br />Percent: 0.12","Filename: SRR400264_00_R1<br />GC_Content:  69<br />Percent: 0.08","Filename: SRR400264_00_R1<br />GC_Content:  70<br />Percent: 0.08","Filename: SRR400264_00_R1<br />GC_Content:  71<br />Percent: 0.05","Filename: SRR400264_00_R1<br />GC_Content:  72<br />Percent: 0.03","Filename: SRR400264_00_R1<br />GC_Content:  73<br />Percent: 0.03","Filename: SRR400264_00_R1<br />GC_Content:  74<br />Percent: 0.02","Filename: SRR400264_00_R1<br />GC_Content:  75<br />Percent: 0.01","Filename: SRR400264_00_R1<br />GC_Content:  76<br />Percent: 0.01","Filename: SRR400264_00_R1<br />GC_Content:  77<br />Percent: 0.01","Filename: SRR400264_00_R1<br />GC_Content:  78<br />Percent: 0.01","Filename: SRR400264_00_R1<br />GC_Content:  79<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  80<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  81<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  82<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  83<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  84<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  85<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  86<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  87<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  88<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  89<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  90<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  91<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  92<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  93<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  94<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  95<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  96<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  97<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  98<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content:  99<br />Percent: 0.00","Filename: SRR400264_00_R1<br />GC_Content: 100<br />Percent: 0.00"],"type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"rgba(166,206,227,1)","dash":"solid"},"hoveron":"points","name":"SRR400264_00_R1","legendgroup":"SRR400264_00_R1","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100],"y":[0,0.01,0.01,0.01,0.01,0.02,0.02,0.04,0.05,0.05,0.08,0.12,0.12,0.19,0.26,0.39,0.52,0.52,0.7,0.88,0.88,1.14,1.4,1.4,1.7,2,2.31,2.61,2.62,2.9,3.2,3.2,3.36,3.53,3.53,3.61,3.69,3.7,3.62,3.53,3.37,3.21,3.21,2.97,2.73,2.73,2.48,2.22,2.22,2,1.77,1.57,1.38,1.38,1.2,1.03,1.03,0.88,0.74,0.74,0.61,0.49,0.48,0.39,0.28,0.21,0.15,0.15,0.11,0.07,0.07,0.05,0.03,0.03,0.02,0.01,0.01,0.01,0.01,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"text":["Filename: SRR400264_00_R2<br />GC_Content:   0<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:   1<br />Percent: 0.01","Filename: SRR400264_00_R2<br />GC_Content:   2<br />Percent: 0.01","Filename: SRR400264_00_R2<br />GC_Content:   3<br />Percent: 0.01","Filename: SRR400264_00_R2<br />GC_Content:   4<br />Percent: 0.01","Filename: SRR400264_00_R2<br />GC_Content:   5<br />Percent: 0.02","Filename: SRR400264_00_R2<br />GC_Content:   6<br />Percent: 0.02","Filename: SRR400264_00_R2<br />GC_Content:   7<br />Percent: 0.04","Filename: SRR400264_00_R2<br />GC_Content:   8<br />Percent: 0.05","Filename: SRR400264_00_R2<br />GC_Content:   9<br />Percent: 0.05","Filename: SRR400264_00_R2<br />GC_Content:  10<br />Percent: 0.08","Filename: SRR400264_00_R2<br />GC_Content:  11<br />Percent: 0.12","Filename: SRR400264_00_R2<br />GC_Content:  12<br />Percent: 0.12","Filename: SRR400264_00_R2<br />GC_Content:  13<br />Percent: 0.19","Filename: SRR400264_00_R2<br />GC_Content:  14<br />Percent: 0.26","Filename: SRR400264_00_R2<br />GC_Content:  15<br />Percent: 0.39","Filename: SRR400264_00_R2<br />GC_Content:  16<br />Percent: 0.52","Filename: SRR400264_00_R2<br />GC_Content:  17<br />Percent: 0.52","Filename: SRR400264_00_R2<br />GC_Content:  18<br />Percent: 0.70","Filename: SRR400264_00_R2<br />GC_Content:  19<br />Percent: 0.88","Filename: SRR400264_00_R2<br />GC_Content:  20<br />Percent: 0.88","Filename: SRR400264_00_R2<br />GC_Content:  21<br />Percent: 1.14","Filename: SRR400264_00_R2<br />GC_Content:  22<br />Percent: 1.40","Filename: SRR400264_00_R2<br />GC_Content:  23<br />Percent: 1.40","Filename: SRR400264_00_R2<br />GC_Content:  24<br />Percent: 1.70","Filename: SRR400264_00_R2<br />GC_Content:  25<br />Percent: 2.00","Filename: SRR400264_00_R2<br />GC_Content:  26<br />Percent: 2.31","Filename: SRR400264_00_R2<br />GC_Content:  27<br />Percent: 2.61","Filename: SRR400264_00_R2<br />GC_Content:  28<br />Percent: 2.62","Filename: SRR400264_00_R2<br />GC_Content:  29<br />Percent: 2.90","Filename: SRR400264_00_R2<br />GC_Content:  30<br />Percent: 3.20","Filename: SRR400264_00_R2<br />GC_Content:  31<br />Percent: 3.20","Filename: SRR400264_00_R2<br />GC_Content:  32<br />Percent: 3.36","Filename: SRR400264_00_R2<br />GC_Content:  33<br />Percent: 3.53","Filename: SRR400264_00_R2<br />GC_Content:  34<br />Percent: 3.53","Filename: SRR400264_00_R2<br />GC_Content:  35<br />Percent: 3.61","Filename: SRR400264_00_R2<br />GC_Content:  36<br />Percent: 3.69","Filename: SRR400264_00_R2<br />GC_Content:  37<br />Percent: 3.70","Filename: SRR400264_00_R2<br />GC_Content:  38<br />Percent: 3.62","Filename: SRR400264_00_R2<br />GC_Content:  39<br />Percent: 3.53","Filename: SRR400264_00_R2<br />GC_Content:  40<br />Percent: 3.37","Filename: SRR400264_00_R2<br />GC_Content:  41<br />Percent: 3.21","Filename: SRR400264_00_R2<br />GC_Content:  42<br />Percent: 3.21","Filename: SRR400264_00_R2<br />GC_Content:  43<br />Percent: 2.97","Filename: SRR400264_00_R2<br />GC_Content:  44<br />Percent: 2.73","Filename: SRR400264_00_R2<br />GC_Content:  45<br />Percent: 2.73","Filename: SRR400264_00_R2<br />GC_Content:  46<br />Percent: 2.48","Filename: SRR400264_00_R2<br />GC_Content:  47<br />Percent: 2.22","Filename: SRR400264_00_R2<br />GC_Content:  48<br />Percent: 2.22","Filename: SRR400264_00_R2<br />GC_Content:  49<br />Percent: 2.00","Filename: SRR400264_00_R2<br />GC_Content:  50<br />Percent: 1.77","Filename: SRR400264_00_R2<br />GC_Content:  51<br />Percent: 1.57","Filename: SRR400264_00_R2<br />GC_Content:  52<br />Percent: 1.38","Filename: SRR400264_00_R2<br />GC_Content:  53<br />Percent: 1.38","Filename: SRR400264_00_R2<br />GC_Content:  54<br />Percent: 1.20","Filename: SRR400264_00_R2<br />GC_Content:  55<br />Percent: 1.03","Filename: SRR400264_00_R2<br />GC_Content:  56<br />Percent: 1.03","Filename: SRR400264_00_R2<br />GC_Content:  57<br />Percent: 0.88","Filename: SRR400264_00_R2<br />GC_Content:  58<br />Percent: 0.74","Filename: SRR400264_00_R2<br />GC_Content:  59<br />Percent: 0.74","Filename: SRR400264_00_R2<br />GC_Content:  60<br />Percent: 0.61","Filename: SRR400264_00_R2<br />GC_Content:  61<br />Percent: 0.49","Filename: SRR400264_00_R2<br />GC_Content:  62<br />Percent: 0.48","Filename: SRR400264_00_R2<br />GC_Content:  63<br />Percent: 0.39","Filename: SRR400264_00_R2<br />GC_Content:  64<br />Percent: 0.28","Filename: SRR400264_00_R2<br />GC_Content:  65<br />Percent: 0.21","Filename: SRR400264_00_R2<br />GC_Content:  66<br />Percent: 0.15","Filename: SRR400264_00_R2<br />GC_Content:  67<br />Percent: 0.15","Filename: SRR400264_00_R2<br />GC_Content:  68<br />Percent: 0.11","Filename: SRR400264_00_R2<br />GC_Content:  69<br />Percent: 0.07","Filename: SRR400264_00_R2<br />GC_Content:  70<br />Percent: 0.07","Filename: SRR400264_00_R2<br />GC_Content:  71<br />Percent: 0.05","Filename: SRR400264_00_R2<br />GC_Content:  72<br />Percent: 0.03","Filename: SRR400264_00_R2<br />GC_Content:  73<br />Percent: 0.03","Filename: SRR400264_00_R2<br />GC_Content:  74<br />Percent: 0.02","Filename: SRR400264_00_R2<br />GC_Content:  75<br />Percent: 0.01","Filename: SRR400264_00_R2<br />GC_Content:  76<br />Percent: 0.01","Filename: SRR400264_00_R2<br />GC_Content:  77<br />Percent: 0.01","Filename: SRR400264_00_R2<br />GC_Content:  78<br />Percent: 0.01","Filename: SRR400264_00_R2<br />GC_Content:  79<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  80<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  81<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  82<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  83<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  84<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  85<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  86<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  87<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  88<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  89<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  90<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  91<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  92<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  93<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  94<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  95<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  96<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  97<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  98<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content:  99<br />Percent: 0.00","Filename: SRR400264_00_R2<br />GC_Content: 100<br />Percent: 0.00"],"type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"rgba(31,120,180,1)","dash":"solid"},"hoveron":"points","name":"SRR400264_00_R2","legendgroup":"SRR400264_00_R2","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100],"y":[0,0.01,0.01,0.01,0.01,0.02,0.02,0.04,0.05,0.05,0.09,0.13,0.13,0.19,0.24,0.36,0.49,0.49,0.68,0.87,0.87,1.13,1.38,1.38,1.67,1.96,2.25,2.55,2.56,2.83,3.12,3.12,3.34,3.56,3.57,3.64,3.72,3.72,3.68,3.63,3.44,3.24,3.24,2.98,2.71,2.71,2.48,2.25,2.24,2.01,1.78,1.59,1.39,1.39,1.22,1.05,1.05,0.91,0.77,0.76,0.63,0.49,0.48,0.38,0.28,0.22,0.16,0.15,0.12,0.08,0.08,0.06,0.03,0.03,0.02,0.02,0.01,0.01,0.01,0.01,0.01,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"text":["Filename: SRR400264_01_R1<br />GC_Content:   0<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:   1<br />Percent: 0.01","Filename: SRR400264_01_R1<br />GC_Content:   2<br />Percent: 0.01","Filename: SRR400264_01_R1<br />GC_Content:   3<br />Percent: 0.01","Filename: SRR400264_01_R1<br />GC_Content:   4<br />Percent: 0.01","Filename: SRR400264_01_R1<br />GC_Content:   5<br />Percent: 0.02","Filename: SRR400264_01_R1<br />GC_Content:   6<br />Percent: 0.02","Filename: SRR400264_01_R1<br />GC_Content:   7<br />Percent: 0.04","Filename: SRR400264_01_R1<br />GC_Content:   8<br />Percent: 0.05","Filename: SRR400264_01_R1<br />GC_Content:   9<br />Percent: 0.05","Filename: SRR400264_01_R1<br />GC_Content:  10<br />Percent: 0.09","Filename: SRR400264_01_R1<br />GC_Content:  11<br />Percent: 0.13","Filename: SRR400264_01_R1<br />GC_Content:  12<br />Percent: 0.13","Filename: SRR400264_01_R1<br />GC_Content:  13<br />Percent: 0.19","Filename: SRR400264_01_R1<br />GC_Content:  14<br />Percent: 0.24","Filename: SRR400264_01_R1<br />GC_Content:  15<br />Percent: 0.36","Filename: SRR400264_01_R1<br />GC_Content:  16<br />Percent: 0.49","Filename: SRR400264_01_R1<br />GC_Content:  17<br />Percent: 0.49","Filename: SRR400264_01_R1<br />GC_Content:  18<br />Percent: 0.68","Filename: SRR400264_01_R1<br />GC_Content:  19<br />Percent: 0.87","Filename: SRR400264_01_R1<br />GC_Content:  20<br />Percent: 0.87","Filename: SRR400264_01_R1<br />GC_Content:  21<br />Percent: 1.13","Filename: SRR400264_01_R1<br />GC_Content:  22<br />Percent: 1.38","Filename: SRR400264_01_R1<br />GC_Content:  23<br />Percent: 1.38","Filename: SRR400264_01_R1<br />GC_Content:  24<br />Percent: 1.67","Filename: SRR400264_01_R1<br />GC_Content:  25<br />Percent: 1.96","Filename: SRR400264_01_R1<br />GC_Content:  26<br />Percent: 2.25","Filename: SRR400264_01_R1<br />GC_Content:  27<br />Percent: 2.55","Filename: SRR400264_01_R1<br />GC_Content:  28<br />Percent: 2.56","Filename: SRR400264_01_R1<br />GC_Content:  29<br />Percent: 2.83","Filename: SRR400264_01_R1<br />GC_Content:  30<br />Percent: 3.12","Filename: SRR400264_01_R1<br />GC_Content:  31<br />Percent: 3.12","Filename: SRR400264_01_R1<br />GC_Content:  32<br />Percent: 3.34","Filename: SRR400264_01_R1<br />GC_Content:  33<br />Percent: 3.56","Filename: SRR400264_01_R1<br />GC_Content:  34<br />Percent: 3.57","Filename: SRR400264_01_R1<br />GC_Content:  35<br />Percent: 3.64","Filename: SRR400264_01_R1<br />GC_Content:  36<br />Percent: 3.72","Filename: SRR400264_01_R1<br />GC_Content:  37<br />Percent: 3.72","Filename: SRR400264_01_R1<br />GC_Content:  38<br />Percent: 3.68","Filename: SRR400264_01_R1<br />GC_Content:  39<br />Percent: 3.63","Filename: SRR400264_01_R1<br />GC_Content:  40<br />Percent: 3.44","Filename: SRR400264_01_R1<br />GC_Content:  41<br />Percent: 3.24","Filename: SRR400264_01_R1<br />GC_Content:  42<br />Percent: 3.24","Filename: SRR400264_01_R1<br />GC_Content:  43<br />Percent: 2.98","Filename: SRR400264_01_R1<br />GC_Content:  44<br />Percent: 2.71","Filename: SRR400264_01_R1<br />GC_Content:  45<br />Percent: 2.71","Filename: SRR400264_01_R1<br />GC_Content:  46<br />Percent: 2.48","Filename: SRR400264_01_R1<br />GC_Content:  47<br />Percent: 2.25","Filename: SRR400264_01_R1<br />GC_Content:  48<br />Percent: 2.24","Filename: SRR400264_01_R1<br />GC_Content:  49<br />Percent: 2.01","Filename: SRR400264_01_R1<br />GC_Content:  50<br />Percent: 1.78","Filename: SRR400264_01_R1<br />GC_Content:  51<br />Percent: 1.59","Filename: SRR400264_01_R1<br />GC_Content:  52<br />Percent: 1.39","Filename: SRR400264_01_R1<br />GC_Content:  53<br />Percent: 1.39","Filename: SRR400264_01_R1<br />GC_Content:  54<br />Percent: 1.22","Filename: SRR400264_01_R1<br />GC_Content:  55<br />Percent: 1.05","Filename: SRR400264_01_R1<br />GC_Content:  56<br />Percent: 1.05","Filename: SRR400264_01_R1<br />GC_Content:  57<br />Percent: 0.91","Filename: SRR400264_01_R1<br />GC_Content:  58<br />Percent: 0.77","Filename: SRR400264_01_R1<br />GC_Content:  59<br />Percent: 0.76","Filename: SRR400264_01_R1<br />GC_Content:  60<br />Percent: 0.63","Filename: SRR400264_01_R1<br />GC_Content:  61<br />Percent: 0.49","Filename: SRR400264_01_R1<br />GC_Content:  62<br />Percent: 0.48","Filename: SRR400264_01_R1<br />GC_Content:  63<br />Percent: 0.38","Filename: SRR400264_01_R1<br />GC_Content:  64<br />Percent: 0.28","Filename: SRR400264_01_R1<br />GC_Content:  65<br />Percent: 0.22","Filename: SRR400264_01_R1<br />GC_Content:  66<br />Percent: 0.16","Filename: SRR400264_01_R1<br />GC_Content:  67<br />Percent: 0.15","Filename: SRR400264_01_R1<br />GC_Content:  68<br />Percent: 0.12","Filename: SRR400264_01_R1<br />GC_Content:  69<br />Percent: 0.08","Filename: SRR400264_01_R1<br />GC_Content:  70<br />Percent: 0.08","Filename: SRR400264_01_R1<br />GC_Content:  71<br />Percent: 0.06","Filename: SRR400264_01_R1<br />GC_Content:  72<br />Percent: 0.03","Filename: SRR400264_01_R1<br />GC_Content:  73<br />Percent: 0.03","Filename: SRR400264_01_R1<br />GC_Content:  74<br />Percent: 0.02","Filename: SRR400264_01_R1<br />GC_Content:  75<br />Percent: 0.02","Filename: SRR400264_01_R1<br />GC_Content:  76<br />Percent: 0.01","Filename: SRR400264_01_R1<br />GC_Content:  77<br />Percent: 0.01","Filename: SRR400264_01_R1<br />GC_Content:  78<br />Percent: 0.01","Filename: SRR400264_01_R1<br />GC_Content:  79<br />Percent: 0.01","Filename: SRR400264_01_R1<br />GC_Content:  80<br />Percent: 0.01","Filename: SRR400264_01_R1<br />GC_Content:  81<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  82<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  83<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  84<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  85<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  86<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  87<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  88<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  89<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  90<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  91<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  92<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  93<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  94<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  95<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  96<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  97<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  98<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content:  99<br />Percent: 0.00","Filename: SRR400264_01_R1<br />GC_Content: 100<br />Percent: 0.00"],"type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"rgba(178,223,138,1)","dash":"solid"},"hoveron":"points","name":"SRR400264_01_R1","legendgroup":"SRR400264_01_R1","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,41,42,43,44,45,46,47,48,49,50,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91,92,93,94,95,96,97,98,99,100],"y":[0,0.01,0.01,0.01,0.02,0.02,0.02,0.04,0.05,0.05,0.09,0.12,0.12,0.19,0.27,0.38,0.5,0.5,0.68,0.86,0.87,1.13,1.39,1.39,1.69,2,2.3,2.62,2.62,2.89,3.16,3.17,3.34,3.53,3.54,3.61,3.69,3.69,3.65,3.6,3.41,3.21,3.21,2.97,2.74,2.73,2.47,2.2,2.2,1.99,1.78,1.58,1.38,1.38,1.21,1.06,1.05,0.9,0.75,0.74,0.61,0.48,0.47,0.38,0.28,0.22,0.16,0.15,0.11,0.08,0.07,0.05,0.04,0.04,0.03,0.01,0.01,0.01,0.01,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"text":["Filename: SRR400264_01_R2<br />GC_Content:   0<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:   1<br />Percent: 0.01","Filename: SRR400264_01_R2<br />GC_Content:   2<br />Percent: 0.01","Filename: SRR400264_01_R2<br />GC_Content:   3<br />Percent: 0.01","Filename: SRR400264_01_R2<br />GC_Content:   4<br />Percent: 0.02","Filename: SRR400264_01_R2<br />GC_Content:   5<br />Percent: 0.02","Filename: SRR400264_01_R2<br />GC_Content:   6<br />Percent: 0.02","Filename: SRR400264_01_R2<br />GC_Content:   7<br />Percent: 0.04","Filename: SRR400264_01_R2<br />GC_Content:   8<br />Percent: 0.05","Filename: SRR400264_01_R2<br />GC_Content:   9<br />Percent: 0.05","Filename: SRR400264_01_R2<br />GC_Content:  10<br />Percent: 0.09","Filename: SRR400264_01_R2<br />GC_Content:  11<br />Percent: 0.12","Filename: SRR400264_01_R2<br />GC_Content:  12<br />Percent: 0.12","Filename: SRR400264_01_R2<br />GC_Content:  13<br />Percent: 0.19","Filename: SRR400264_01_R2<br />GC_Content:  14<br />Percent: 0.27","Filename: SRR400264_01_R2<br />GC_Content:  15<br />Percent: 0.38","Filename: SRR400264_01_R2<br />GC_Content:  16<br />Percent: 0.50","Filename: SRR400264_01_R2<br />GC_Content:  17<br />Percent: 0.50","Filename: SRR400264_01_R2<br />GC_Content:  18<br />Percent: 0.68","Filename: SRR400264_01_R2<br />GC_Content:  19<br />Percent: 0.86","Filename: SRR400264_01_R2<br />GC_Content:  20<br />Percent: 0.87","Filename: SRR400264_01_R2<br />GC_Content:  21<br />Percent: 1.13","Filename: SRR400264_01_R2<br />GC_Content:  22<br />Percent: 1.39","Filename: SRR400264_01_R2<br />GC_Content:  23<br />Percent: 1.39","Filename: SRR400264_01_R2<br />GC_Content:  24<br />Percent: 1.69","Filename: SRR400264_01_R2<br />GC_Content:  25<br />Percent: 2.00","Filename: SRR400264_01_R2<br />GC_Content:  26<br />Percent: 2.30","Filename: SRR400264_01_R2<br />GC_Content:  27<br />Percent: 2.62","Filename: SRR400264_01_R2<br />GC_Content:  28<br />Percent: 2.62","Filename: SRR400264_01_R2<br />GC_Content:  29<br />Percent: 2.89","Filename: SRR400264_01_R2<br />GC_Content:  30<br />Percent: 3.16","Filename: SRR400264_01_R2<br />GC_Content:  31<br />Percent: 3.17","Filename: SRR400264_01_R2<br />GC_Content:  32<br />Percent: 3.34","Filename: SRR400264_01_R2<br />GC_Content:  33<br />Percent: 3.53","Filename: SRR400264_01_R2<br />GC_Content:  34<br />Percent: 3.54","Filename: SRR400264_01_R2<br />GC_Content:  35<br />Percent: 3.61","Filename: SRR400264_01_R2<br />GC_Content:  36<br />Percent: 3.69","Filename: SRR400264_01_R2<br />GC_Content:  37<br />Percent: 3.69","Filename: SRR400264_01_R2<br />GC_Content:  38<br />Percent: 3.65","Filename: SRR400264_01_R2<br />GC_Content:  39<br />Percent: 3.60","Filename: SRR400264_01_R2<br />GC_Content:  40<br />Percent: 3.41","Filename: SRR400264_01_R2<br />GC_Content:  41<br />Percent: 3.21","Filename: SRR400264_01_R2<br />GC_Content:  42<br />Percent: 3.21","Filename: SRR400264_01_R2<br />GC_Content:  43<br />Percent: 2.97","Filename: SRR400264_01_R2<br />GC_Content:  44<br />Percent: 2.74","Filename: SRR400264_01_R2<br />GC_Content:  45<br />Percent: 2.73","Filename: SRR400264_01_R2<br />GC_Content:  46<br />Percent: 2.47","Filename: SRR400264_01_R2<br />GC_Content:  47<br />Percent: 2.20","Filename: SRR400264_01_R2<br />GC_Content:  48<br />Percent: 2.20","Filename: SRR400264_01_R2<br />GC_Content:  49<br />Percent: 1.99","Filename: SRR400264_01_R2<br />GC_Content:  50<br />Percent: 1.78","Filename: SRR400264_01_R2<br />GC_Content:  51<br />Percent: 1.58","Filename: SRR400264_01_R2<br />GC_Content:  52<br />Percent: 1.38","Filename: SRR400264_01_R2<br />GC_Content:  53<br />Percent: 1.38","Filename: SRR400264_01_R2<br />GC_Content:  54<br />Percent: 1.21","Filename: SRR400264_01_R2<br />GC_Content:  55<br />Percent: 1.06","Filename: SRR400264_01_R2<br />GC_Content:  56<br />Percent: 1.05","Filename: SRR400264_01_R2<br />GC_Content:  57<br />Percent: 0.90","Filename: SRR400264_01_R2<br />GC_Content:  58<br />Percent: 0.75","Filename: SRR400264_01_R2<br />GC_Content:  59<br />Percent: 0.74","Filename: SRR400264_01_R2<br />GC_Content:  60<br />Percent: 0.61","Filename: SRR400264_01_R2<br />GC_Content:  61<br />Percent: 0.48","Filename: SRR400264_01_R2<br />GC_Content:  62<br />Percent: 0.47","Filename: SRR400264_01_R2<br />GC_Content:  63<br />Percent: 0.38","Filename: SRR400264_01_R2<br />GC_Content:  64<br />Percent: 0.28","Filename: SRR400264_01_R2<br />GC_Content:  65<br />Percent: 0.22","Filename: SRR400264_01_R2<br />GC_Content:  66<br />Percent: 0.16","Filename: SRR400264_01_R2<br />GC_Content:  67<br />Percent: 0.15","Filename: SRR400264_01_R2<br />GC_Content:  68<br />Percent: 0.11","Filename: SRR400264_01_R2<br />GC_Content:  69<br />Percent: 0.08","Filename: SRR400264_01_R2<br />GC_Content:  70<br />Percent: 0.07","Filename: SRR400264_01_R2<br />GC_Content:  71<br />Percent: 0.05","Filename: SRR400264_01_R2<br />GC_Content:  72<br />Percent: 0.04","Filename: SRR400264_01_R2<br />GC_Content:  73<br />Percent: 0.04","Filename: SRR400264_01_R2<br />GC_Content:  74<br />Percent: 0.03","Filename: SRR400264_01_R2<br />GC_Content:  75<br />Percent: 0.01","Filename: SRR400264_01_R2<br />GC_Content:  76<br />Percent: 0.01","Filename: SRR400264_01_R2<br />GC_Content:  77<br />Percent: 0.01","Filename: SRR400264_01_R2<br />GC_Content:  78<br />Percent: 0.01","Filename: SRR400264_01_R2<br />GC_Content:  79<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  80<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  81<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  82<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  83<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  84<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  85<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  86<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  87<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  88<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  89<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  90<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  91<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  92<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  93<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  94<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  95<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  96<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  97<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  98<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content:  99<br />Percent: 0.00","Filename: SRR400264_01_R2<br />GC_Content: 100<br />Percent: 0.00"],"type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"rgba(51,160,44,1)","dash":"solid"},"hoveron":"points","name":"SRR400264_01_R2","legendgroup":"SRR400264_01_R2","showlegend":true,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"margin":{"t":26.4370515329419,"r":7.30593607305936,"b":40.3913894324853,"l":37.2602739726027},"plot_bgcolor":"rgba(255,255,255,1)","paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"xaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-2,102],"tickmode":"array","ticktext":["0","10","20","30","40","50","60","70","80","90","100"],"tickvals":[0,10,20,30,40,50,60,70,80,90,100],"categoryorder":"array","categoryarray":["0","10","20","30","40","50","60","70","80","90","100"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y","title":{"text":"GC Content (%)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[-0.1985,4.1685],"tickmode":"array","ticktext":["0%","1%","2%","3%","4%"],"tickvals":[0,1,2,3,4],"categoryorder":"array","categoryarray":["0%","1%","2%","3%","4%"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"x","title":{"text":"Reads (%)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187}},"hoverformat":".2f"},"shapes":[{"type":"rect","fillcolor":"transparent","line":{"color":"rgba(51,51,51,1)","width":0.66417600664176,"linetype":"solid"},"yref":"paper","xref":"paper","x0":0,"x1":1,"y0":0,"y1":1}],"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895}},"hovermode":"closest","barmode":"relative"},"config":{"doubleClick":"reset","showSendToCloud":false},"source":"A","attrs":{"4e060f98c3b":{"colour":{},"x":{},"y":{},"type":"scatter"}},"cur_data":"4e060f98c3b","visdat":{"4e060f98c3b":["function (y) ","x"]},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<p class="caption">
+<em>GC content compared to the Theoretical Distribution for genomic data. Sample can be hidden by clicking on them in the legend.</em>
+</p>
+</div>
+</div>
+<div id="sequence-content" class="section level2">
+<h2>Sequence Content</h2>
+<pre class="r"><code>plotSeqContent(trimFqc, usePlotly = TRUE, dendrogram = TRUE, cluster = TRUE)</code></pre>
+<div class="figure" style="text-align: center">
+<div id="htmlwidget-a05d67cec815c89f6471" style="width:960px;height:672px;" class="plotly html-widget"></div>
+<script type="application/json" data-for="htmlwidget-a05d67cec815c89f6471">{"x":{"data":[{"x":[-4.55450326599949,-4.55450326599949,null,-4.55450326599949,-1.58192920195564,null,-1.58192920195564,-1.58192920195564,null,-1.58192920195564,-0,null,-1.58192920195564,-1.58192920195564,null,-1.58192920195564,-0,null,-4.55450326599949,-4.55450326599949,null,-4.55450326599949,-1.70032349863195,null,-1.70032349863195,-1.70032349863195,null,-1.70032349863195,-0,null,-1.70032349863195,-1.70032349863195,null,-1.70032349863195,-0],"y":[2.5,1.5,null,1.5,1.5,null,1.5,1,null,1,1,null,1.5,2,null,2,2,null,2.5,3.5,null,3.5,3.5,null,3.5,3,null,3,3,null,3.5,4,null,4,4],"text":"","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"rgba(0,0,0,1)","dash":"solid"},"hoveron":"points","showlegend":false,"xaxis":"x","yaxis":"y","hoverinfo":"text","frame":null},{"x":[0.5,0.5,1.5,1.5,0.5],"y":[2.5,3.5,3.5,2.5,2.5],"text":"Filename: SRR400264_00_R1<br />Status: WARN","key":["SRR400264_00_R1.fastq.gz"],"type":"scatter","mode":"lines","line":{"width":0.377952755905512,"color":"transparent","dash":"solid"},"fill":"toself","fillcolor":"rgba(230,230,51,1)","hoveron":"fills","name":"WARN","legendgroup":"WARN","showlegend":true,"xaxis":"x2","yaxis":"y","hoverinfo":"text","_isSimpleKey":true,"_isNestedKey":false,"frame":null},{"x":[0.5,0.5,1.5,1.5,0.5],"y":[0.5,1.5,1.5,0.5,0.5],"text":"Filename: SRR400264_00_R2<br />Status: WARN","key":["SRR400264_00_R2.fastq.gz"],"type":"scatter","mode":"lines","line":{"width":0.377952755905512,"color":"transparent","dash":"solid"},"fill":"toself","fillcolor":"rgba(230,230,51,1)","hoveron":"fills","name":"WARN","legendgroup":"WARN","showlegend":false,"xaxis":"x2","yaxis":"y","hoverinfo":"text","_isSimpleKey":true,"_isNestedKey":false,"frame":null},{"x":[0.5,0.5,1.5,1.5,0.5],"y":[3.5,4.5,4.5,3.5,3.5],"text":"Filename: SRR400264_01_R1<br />Status: WARN","key":["SRR400264_01_R1.fastq.gz"],"type":"scatter","mode":"lines","line":{"width":0.377952755905512,"color":"transparent","dash":"solid"},"fill":"toself","fillcolor":"rgba(230,230,51,1)","hoveron":"fills","name":"WARN","legendgroup":"WARN","showlegend":false,"xaxis":"x2","yaxis":"y","hoverinfo":"text","_isSimpleKey":true,"_isNestedKey":false,"frame":null},{"x":[0.5,0.5,1.5,1.5,0.5],"y":[1.5,2.5,2.5,1.5,1.5],"text":"Filename: SRR400264_01_R2<br />Status: WARN","key":["SRR400264_01_R2.fastq.gz"],"type":"scatter","mode":"lines","line":{"width":0.377952755905512,"color":"transparent","dash":"solid"},"fill":"toself","fillcolor":"rgba(230,230,51,1)","hoveron":"fills","name":"WARN","legendgroup":"WARN","showlegend":false,"xaxis":"x2","yaxis":"y","hoverinfo":"text","_isSimpleKey":true,"_isNestedKey":false,"frame":null},{"x":[0.5,1.5,null,0.5,1.5,null,0.5,1.5],"y":[1.5,1.5,null,2.5,2.5,null,3.5,3.5],"text":"","type":"scatter","mode":"lines","line":{"width":0.755905511811024,"color":"rgba(51,51,51,1)","dash":"solid"},"hoveron":"points","showlegend":false,"xaxis":"x2","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1,1,2.5,2.5,1],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 28.32%<br />C: 13.94%<br />G: 26.83%<br />T: 30.91%<br />Filename: SRR400264_01_R2<br />Position: 2bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(68,63,31,1)","hoveron":"fills","name":"#443F1F","legendgroup":"#443F1F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1,1,2.5,2.5,1],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 28.45%<br />C: 14.04%<br />G: 26.7%<br />T: 30.81%<br />Filename: SRR400264_00_R2<br />Position: 2bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(69,63,31,1)","hoveron":"fills","name":"#453F1F","legendgroup":"#453F1F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1,1,2.5,2.5,1],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 27.15%<br />C: 14.44%<br />G: 26.78%<br />T: 31.63%<br />Filename: SRR400264_00_R1<br />Position: 2bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(70,60,32,1)","hoveron":"fills","name":"#463C20","legendgroup":"#463C20","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[1,1,2.5,2.5,1],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 27.2%<br />C: 14.36%<br />G: 26.76%<br />T: 31.68%<br />Filename: SRR400264_01_R1<br />Position: 2bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(70,60,32,1)","hoveron":"fills","name":"#463C20","legendgroup":"#463C20","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[0,0,1.5,1.5,0],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 41.07%<br />C: 23.25%<br />G: 12.72%<br />T: 22.97%<br />Filename: SRR400264_00_R1<br />Position: 1bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(97,173,98,1)","hoveron":"fills","name":"#61AD62","legendgroup":"#61AD62","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[0,0,1.5,1.5,0],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 41.28%<br />C: 23.05%<br />G: 12.65%<br />T: 23.03%<br />Filename: SRR400264_01_R1<br />Position: 1bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(97,174,97,1)","hoveron":"fills","name":"#61AE61","legendgroup":"#61AE61","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[23,23,24.5,24.5,23],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.46%<br />C: 18.91%<br />G: 19.51%<br />T: 31.12%<br />Filename: SRR400264_01_R1<br />Position: 24bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(101,99,61,1)","hoveron":"fills","name":"#65633D","legendgroup":"#65633D","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[10,10,11.5,11.5,10],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.85%<br />C: 18.97%<br />G: 19.28%<br />T: 30.89%<br />Filename: SRR400264_00_R2<br />Position: 11bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(101,101,62,1)","hoveron":"fills","name":"#65653E","legendgroup":"#65653E","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[9,9,10.5,10.5,9],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.63%<br />C: 19.24%<br />G: 19.24%<br />T: 30.89%<br />Filename: SRR400264_00_R1<br />Position: 10bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(101,101,63,1)","hoveron":"fills","name":"#65653F","legendgroup":"#65653F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[10,10,11.5,11.5,10],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.7%<br />C: 19.17%<br />G: 19.25%<br />T: 30.88%<br />Filename: SRR400264_00_R1<br />Position: 11bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(101,101,63,1)","hoveron":"fills","name":"#65653F","legendgroup":"#65653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[10,10,11.5,11.5,10],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.92%<br />C: 19.3%<br />G: 19.16%<br />T: 30.62%<br />Filename: SRR400264_01_R1<br />Position: 11bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(101,102,64,1)","hoveron":"fills","name":"#656640","legendgroup":"#656640","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[11,11,12.5,12.5,11],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 31.1%<br />C: 19.03%<br />G: 19.12%<br />T: 30.74%<br />Filename: SRR400264_01_R2<br />Position: 12bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(101,103,63,1)","hoveron":"fills","name":"#65673F","legendgroup":"#65673F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[19,19,20.5,20.5,19],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.44%<br />C: 18.88%<br />G: 19.39%<br />T: 31.28%<br />Filename: SRR400264_00_R1<br />Position: 20bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,99,62,1)","hoveron":"fills","name":"#66633E","legendgroup":"#66633E","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[26,26,27.5,27.5,26],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.45%<br />C: 19.15%<br />G: 19.23%<br />T: 31.18%<br />Filename: SRR400264_01_R2<br />Position: 27bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,100,63,1)","hoveron":"fills","name":"#66643F","legendgroup":"#66643F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[31,31,32.5,32.5,31],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.42%<br />C: 19.47%<br />G: 19.14%<br />T: 30.98%<br />Filename: SRR400264_00_R1<br />Position: 32bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,100,64,1)","hoveron":"fills","name":"#666440","legendgroup":"#666440","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[14,14,15.5,15.5,14],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.56%<br />C: 19.14%<br />G: 19.19%<br />T: 31.11%<br />Filename: SRR400264_00_R1<br />Position: 15bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,101,63,1)","hoveron":"fills","name":"#66653F","legendgroup":"#66653F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[32,32,33.5,33.5,32],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.59%<br />C: 19.24%<br />G: 19.14%<br />T: 31.04%<br />Filename: SRR400264_01_R1<br />Position: 33bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,101,63,1)","hoveron":"fills","name":"#66653F","legendgroup":"#66653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[14,14,15.5,15.5,14],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.63%<br />C: 19.12%<br />G: 19.18%<br />T: 31.06%<br />Filename: SRR400264_01_R1<br />Position: 15bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,101,63,1)","hoveron":"fills","name":"#66653F","legendgroup":"#66653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[9,9,10.5,10.5,9],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.63%<br />C: 19.17%<br />G: 19.21%<br />T: 30.99%<br />Filename: SRR400264_01_R1<br />Position: 10bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,101,63,1)","hoveron":"fills","name":"#66653F","legendgroup":"#66653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[35,35,36.5,36.5,35],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.66%<br />C: 19.14%<br />G: 19.22%<br />T: 30.98%<br />Filename: SRR400264_00_R1<br />Position: 36bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,101,63,1)","hoveron":"fills","name":"#66653F","legendgroup":"#66653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[9,9,10.5,10.5,9],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.71%<br />C: 19.21%<br />G: 19.15%<br />T: 30.93%<br />Filename: SRR400264_00_R2<br />Position: 10bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,101,63,1)","hoveron":"fills","name":"#66653F","legendgroup":"#66653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[32,32,33.5,33.5,32],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.49%<br />C: 19.34%<br />G: 19.15%<br />T: 31.02%<br />Filename: SRR400264_00_R1<br />Position: 33bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,101,64,1)","hoveron":"fills","name":"#666540","legendgroup":"#666540","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[24,24,25.5,25.5,24],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.5%<br />C: 19.4%<br />G: 19.13%<br />T: 30.96%<br />Filename: SRR400264_01_R1<br />Position: 25bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,101,64,1)","hoveron":"fills","name":"#666540","legendgroup":"#666540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[24,24,25.5,25.5,24],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.57%<br />C: 19.27%<br />G: 19.14%<br />T: 31.02%<br />Filename: SRR400264_00_R1<br />Position: 25bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,101,64,1)","hoveron":"fills","name":"#666540","legendgroup":"#666540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[24,24,25.5,25.5,24],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.7%<br />C: 19.28%<br />G: 19.1%<br />T: 30.91%<br />Filename: SRR400264_01_R2<br />Position: 25bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,101,64,1)","hoveron":"fills","name":"#666540","legendgroup":"#666540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[10,10,11.5,11.5,10],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.82%<br />C: 19.16%<br />G: 19.08%<br />T: 30.95%<br />Filename: SRR400264_01_R2<br />Position: 11bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,102,63,1)","hoveron":"fills","name":"#66663F","legendgroup":"#66663F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[11,11,12.5,12.5,11],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.9%<br />C: 18.96%<br />G: 19.14%<br />T: 31.01%<br />Filename: SRR400264_01_R1<br />Position: 12bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,102,63,1)","hoveron":"fills","name":"#66663F","legendgroup":"#66663F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[9,9,10.5,10.5,9],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.94%<br />C: 19.19%<br />G: 19.07%<br />T: 30.81%<br />Filename: SRR400264_01_R2<br />Position: 10bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,102,63,1)","hoveron":"fills","name":"#66663F","legendgroup":"#66663F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[12,12,13.5,13.5,12],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 31.06%<br />C: 18.88%<br />G: 19.12%<br />T: 30.94%<br />Filename: SRR400264_00_R1<br />Position: 13bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,103,62,1)","hoveron":"fills","name":"#66673E","legendgroup":"#66673E","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[12,12,13.5,13.5,12],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 31.15%<br />C: 18.71%<br />G: 19.16%<br />T: 30.99%<br />Filename: SRR400264_01_R1<br />Position: 13bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,103,62,1)","hoveron":"fills","name":"#66673E","legendgroup":"#66673E","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[13,13,14.5,14.5,13],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.99%<br />C: 19.07%<br />G: 19.05%<br />T: 30.89%<br />Filename: SRR400264_00_R1<br />Position: 14bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,103,63,1)","hoveron":"fills","name":"#66673F","legendgroup":"#66673F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[11,11,12.5,12.5,11],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 31.11%<br />C: 18.98%<br />G: 19.11%<br />T: 30.79%<br />Filename: SRR400264_00_R1<br />Position: 12bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,103,63,1)","hoveron":"fills","name":"#66673F","legendgroup":"#66673F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[11,11,12.5,12.5,11],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 31.24%<br />C: 19.01%<br />G: 18.96%<br />T: 30.79%<br />Filename: SRR400264_00_R2<br />Position: 12bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,104,63,1)","hoveron":"fills","name":"#66683F","legendgroup":"#66683F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[12,12,13.5,13.5,12],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 31.29%<br />C: 18.86%<br />G: 19.03%<br />T: 30.82%<br />Filename: SRR400264_01_R2<br />Position: 13bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,104,63,1)","hoveron":"fills","name":"#66683F","legendgroup":"#66683F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[0,0,1.5,1.5,0],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 42.4%<br />C: 22.09%<br />G: 11.9%<br />T: 23.61%<br />Filename: SRR400264_01_R2<br />Position: 1bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,183,95,1)","hoveron":"fills","name":"#66B75F","legendgroup":"#66B75F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[0,0,1.5,1.5,0],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 42.46%<br />C: 22.21%<br />G: 11.79%<br />T: 23.54%<br />Filename: SRR400264_00_R2<br />Position: 1bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(102,184,96,1)","hoveron":"fills","name":"#66B860","legendgroup":"#66B860","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[21,21,22.5,22.5,21],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.18%<br />C: 19.27%<br />G: 19.22%<br />T: 31.32%<br />Filename: SRR400264_01_R1<br />Position: 22bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,99,63,1)","hoveron":"fills","name":"#67633F","legendgroup":"#67633F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[6,6,7.5,7.5,6],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.64%<br />C: 18.65%<br />G: 19.34%<br />T: 31.37%<br />Filename: SRR400264_01_R1<br />Position: 7bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,100,61,1)","hoveron":"fills","name":"#67643D","legendgroup":"#67643D","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[20,20,21.5,21.5,20],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.37%<br />C: 19.05%<br />G: 19.29%<br />T: 31.29%<br />Filename: SRR400264_01_R1<br />Position: 21bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,100,62,1)","hoveron":"fills","name":"#67643E","legendgroup":"#67643E","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[19,19,20.5,20.5,19],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.42%<br />C: 18.96%<br />G: 19.26%<br />T: 31.37%<br />Filename: SRR400264_01_R1<br />Position: 20bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,100,62,1)","hoveron":"fills","name":"#67643E","legendgroup":"#67643E","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[16,16,17.5,17.5,16],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.52%<br />C: 18.94%<br />G: 19.19%<br />T: 31.35%<br />Filename: SRR400264_01_R1<br />Position: 17bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,100,62,1)","hoveron":"fills","name":"#67643E","legendgroup":"#67643E","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[21,21,22.5,22.5,21],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.39%<br />C: 19.11%<br />G: 19.22%<br />T: 31.28%<br />Filename: SRR400264_00_R1<br />Position: 22bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,100,63,1)","hoveron":"fills","name":"#67643F","legendgroup":"#67643F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[20,20,21.5,21.5,20],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.39%<br />C: 19.22%<br />G: 19.16%<br />T: 31.23%<br />Filename: SRR400264_00_R1<br />Position: 21bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,100,63,1)","hoveron":"fills","name":"#67643F","legendgroup":"#67643F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[25,25,26.5,26.5,25],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.44%<br />C: 19.26%<br />G: 19.17%<br />T: 31.14%<br />Filename: SRR400264_01_R1<br />Position: 26bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,100,63,1)","hoveron":"fills","name":"#67643F","legendgroup":"#67643F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[15,15,16.5,16.5,15],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.66%<br />C: 18.92%<br />G: 19.12%<br />T: 31.3%<br />Filename: SRR400264_01_R2<br />Position: 16bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,62,1)","hoveron":"fills","name":"#67653E","legendgroup":"#67653E","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[6,6,7.5,7.5,6],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.69%<br />C: 18.82%<br />G: 19.2%<br />T: 31.29%<br />Filename: SRR400264_01_R2<br />Position: 7bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,62,1)","hoveron":"fills","name":"#67653E","legendgroup":"#67653E","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[20,20,21.5,21.5,20],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.47%<br />C: 19.16%<br />G: 19.11%<br />T: 31.27%<br />Filename: SRR400264_01_R2<br />Position: 21bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,63,1)","hoveron":"fills","name":"#67653F","legendgroup":"#67653F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[26,26,27.5,27.5,26],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.52%<br />C: 19.13%<br />G: 19.12%<br />T: 31.23%<br />Filename: SRR400264_01_R1<br />Position: 27bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,63,1)","hoveron":"fills","name":"#67653F","legendgroup":"#67653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[30,30,31.5,31.5,30],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.55%<br />C: 19.17%<br />G: 19.09%<br />T: 31.19%<br />Filename: SRR400264_00_R2<br />Position: 31bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,63,1)","hoveron":"fills","name":"#67653F","legendgroup":"#67653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[23,23,24.5,24.5,23],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.6%<br />C: 19.13%<br />G: 19.15%<br />T: 31.12%<br />Filename: SRR400264_00_R1<br />Position: 24bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,63,1)","hoveron":"fills","name":"#67653F","legendgroup":"#67653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[35,35,36.5,36.5,35],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.62%<br />C: 19.21%<br />G: 19.11%<br />T: 31.06%<br />Filename: SRR400264_00_R2<br />Position: 36bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,63,1)","hoveron":"fills","name":"#67653F","legendgroup":"#67653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[28,28,29.5,29.5,28],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.39%<br />C: 19.32%<br />G: 19.06%<br />T: 31.23%<br />Filename: SRR400264_00_R2<br />Position: 29bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,64,1)","hoveron":"fills","name":"#676540","legendgroup":"#676540","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[33,33,34.5,34.5,33],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.41%<br />C: 19.45%<br />G: 19.03%<br />T: 31.11%<br />Filename: SRR400264_00_R1<br />Position: 34bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,64,1)","hoveron":"fills","name":"#676540","legendgroup":"#676540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[25,25,26.5,26.5,25],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.43%<br />C: 19.33%<br />G: 19.08%<br />T: 31.16%<br />Filename: SRR400264_00_R2<br />Position: 26bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,64,1)","hoveron":"fills","name":"#676540","legendgroup":"#676540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[27,27,28.5,28.5,27],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.44%<br />C: 19.28%<br />G: 19.08%<br />T: 31.2%<br />Filename: SRR400264_01_R1<br />Position: 28bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,64,1)","hoveron":"fills","name":"#676540","legendgroup":"#676540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[34,34,35.5,35.5,34],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.44%<br />C: 19.32%<br />G: 19.03%<br />T: 31.22%<br />Filename: SRR400264_00_R2<br />Position: 35bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,64,1)","hoveron":"fills","name":"#676540","legendgroup":"#676540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[33,33,34.5,34.5,33],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.48%<br />C: 19.26%<br />G: 19.04%<br />T: 31.22%<br />Filename: SRR400264_00_R2<br />Position: 34bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,64,1)","hoveron":"fills","name":"#676540","legendgroup":"#676540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[30,30,31.5,31.5,30],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.48%<br />C: 19.35%<br />G: 19.08%<br />T: 31.09%<br />Filename: SRR400264_00_R1<br />Position: 31bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,64,1)","hoveron":"fills","name":"#676540","legendgroup":"#676540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[32,32,33.5,33.5,32],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.5%<br />C: 19.38%<br />G: 19.02%<br />T: 31.1%<br />Filename: SRR400264_01_R2<br />Position: 33bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,64,1)","hoveron":"fills","name":"#676540","legendgroup":"#676540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[30,30,31.5,31.5,30],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.52%<br />C: 19.27%<br />G: 19.12%<br />T: 31.09%<br />Filename: SRR400264_01_R1<br />Position: 31bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,64,1)","hoveron":"fills","name":"#676540","legendgroup":"#676540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[33,33,34.5,34.5,33],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.52%<br />C: 19.41%<br />G: 18.99%<br />T: 31.08%<br />Filename: SRR400264_01_R1<br />Position: 34bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,64,1)","hoveron":"fills","name":"#676540","legendgroup":"#676540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[23,23,24.5,24.5,23],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.53%<br />C: 19.23%<br />G: 19.03%<br />T: 31.22%<br />Filename: SRR400264_01_R2<br />Position: 24bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,64,1)","hoveron":"fills","name":"#676540","legendgroup":"#676540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[29,29,30.5,30.5,29],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.53%<br />C: 19.24%<br />G: 19.12%<br />T: 31.1%<br />Filename: SRR400264_00_R1<br />Position: 30bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,64,1)","hoveron":"fills","name":"#676540","legendgroup":"#676540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[32,32,33.5,33.5,32],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.55%<br />C: 19.31%<br />G: 19.07%<br />T: 31.06%<br />Filename: SRR400264_00_R2<br />Position: 33bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,64,1)","hoveron":"fills","name":"#676540","legendgroup":"#676540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[35,35,36.5,36.5,35],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.58%<br />C: 19.28%<br />G: 19.08%<br />T: 31.05%<br />Filename: SRR400264_01_R1<br />Position: 36bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,64,1)","hoveron":"fills","name":"#676540","legendgroup":"#676540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[35,35,36.5,36.5,35],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.65%<br />C: 19.26%<br />G: 19.07%<br />T: 31.02%<br />Filename: SRR400264_01_R2<br />Position: 36bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,101,64,1)","hoveron":"fills","name":"#676540","legendgroup":"#676540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[24,24,25.5,25.5,24],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.68%<br />C: 19.15%<br />G: 19.04%<br />T: 31.13%<br />Filename: SRR400264_00_R2<br />Position: 25bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,102,63,1)","hoveron":"fills","name":"#67663F","legendgroup":"#67663F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[14,14,15.5,15.5,14],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.75%<br />C: 19.06%<br />G: 19.04%<br />T: 31.15%<br />Filename: SRR400264_01_R2<br />Position: 15bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,102,63,1)","hoveron":"fills","name":"#67663F","legendgroup":"#67663F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[13,13,14.5,14.5,13],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.81%<br />C: 18.97%<br />G: 19.03%<br />T: 31.18%<br />Filename: SRR400264_01_R1<br />Position: 14bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,102,63,1)","hoveron":"fills","name":"#67663F","legendgroup":"#67663F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[27,27,28.5,28.5,27],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.75%<br />C: 19.22%<br />G: 18.97%<br />T: 31.06%<br />Filename: SRR400264_00_R1<br />Position: 28bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,102,64,1)","hoveron":"fills","name":"#676640","legendgroup":"#676640","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[13,13,14.5,14.5,13],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 31.02%<br />C: 18.83%<br />G: 19.01%<br />T: 31.14%<br />Filename: SRR400264_01_R2<br />Position: 14bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,103,62,1)","hoveron":"fills","name":"#67673E","legendgroup":"#67673E","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[12,12,13.5,13.5,12],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 31.37%<br />C: 18.63%<br />G: 18.95%<br />T: 31.04%<br />Filename: SRR400264_00_R2<br />Position: 13bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(103,104,62,1)","hoveron":"fills","name":"#67683E","legendgroup":"#67683E","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[28,28,29.5,29.5,28],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.32%<br />C: 19.17%<br />G: 19.07%<br />T: 31.44%<br />Filename: SRR400264_01_R1<br />Position: 29bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,100,63,1)","hoveron":"fills","name":"#68643F","legendgroup":"#68643F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[34,34,35.5,35.5,34],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.24%<br />C: 19.3%<br />G: 19.1%<br />T: 31.35%<br />Filename: SRR400264_01_R2<br />Position: 35bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,100,64,1)","hoveron":"fills","name":"#686440","legendgroup":"#686440","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[31,31,32.5,32.5,31],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.26%<br />C: 19.34%<br />G: 18.98%<br />T: 31.42%<br />Filename: SRR400264_01_R1<br />Position: 32bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,100,64,1)","hoveron":"fills","name":"#686440","legendgroup":"#686440","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[26,26,27.5,27.5,26],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.3%<br />C: 19.22%<br />G: 19.08%<br />T: 31.4%<br />Filename: SRR400264_00_R1<br />Position: 27bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,100,64,1)","hoveron":"fills","name":"#686440","legendgroup":"#686440","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[31,31,32.5,32.5,31],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.19%<br />C: 19.49%<br />G: 19%<br />T: 31.33%<br />Filename: SRR400264_00_R2<br />Position: 32bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,100,65,1)","hoveron":"fills","name":"#686441","legendgroup":"#686441","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[6,6,7.5,7.5,6],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.69%<br />C: 18.56%<br />G: 19.19%<br />T: 31.56%<br />Filename: SRR400264_00_R2<br />Position: 7bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,61,1)","hoveron":"fills","name":"#68653D","legendgroup":"#68653D","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[22,22,23.5,23.5,22],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.41%<br />C: 19.1%<br />G: 19.09%<br />T: 31.39%<br />Filename: SRR400264_00_R1<br />Position: 23bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,63,1)","hoveron":"fills","name":"#68653F","legendgroup":"#68653F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[28,28,29.5,29.5,28],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.45%<br />C: 19.17%<br />G: 19.07%<br />T: 31.31%<br />Filename: SRR400264_00_R1<br />Position: 29bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,63,1)","hoveron":"fills","name":"#68653F","legendgroup":"#68653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[20,20,21.5,21.5,20],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.46%<br />C: 18.97%<br />G: 19.13%<br />T: 31.44%<br />Filename: SRR400264_00_R2<br />Position: 21bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,63,1)","hoveron":"fills","name":"#68653F","legendgroup":"#68653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[25,25,26.5,26.5,25],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.48%<br />C: 19.17%<br />G: 19.06%<br />T: 31.29%<br />Filename: SRR400264_00_R1<br />Position: 26bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,63,1)","hoveron":"fills","name":"#68653F","legendgroup":"#68653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[18,18,19.5,19.5,18],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.54%<br />C: 19.05%<br />G: 19.05%<br />T: 31.36%<br />Filename: SRR400264_00_R1<br />Position: 19bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,63,1)","hoveron":"fills","name":"#68653F","legendgroup":"#68653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[21,21,22.5,22.5,21],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.55%<br />C: 18.94%<br />G: 19.11%<br />T: 31.4%<br />Filename: SRR400264_00_R2<br />Position: 22bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,63,1)","hoveron":"fills","name":"#68653F","legendgroup":"#68653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[19,19,20.5,20.5,19],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.55%<br />C: 18.97%<br />G: 19.02%<br />T: 31.46%<br />Filename: SRR400264_01_R2<br />Position: 20bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,63,1)","hoveron":"fills","name":"#68653F","legendgroup":"#68653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[17,17,18.5,18.5,17],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.36%<br />C: 19.38%<br />G: 18.95%<br />T: 31.31%<br />Filename: SRR400264_01_R2<br />Position: 18bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,64,1)","hoveron":"fills","name":"#686540","legendgroup":"#686540","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[17,17,18.5,18.5,17],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.4%<br />C: 19.4%<br />G: 18.98%<br />T: 31.22%<br />Filename: SRR400264_01_R1<br />Position: 18bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,64,1)","hoveron":"fills","name":"#686540","legendgroup":"#686540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[34,34,35.5,35.5,34],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.41%<br />C: 19.2%<br />G: 19.02%<br />T: 31.36%<br />Filename: SRR400264_00_R1<br />Position: 35bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,64,1)","hoveron":"fills","name":"#686540","legendgroup":"#686540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[26,26,27.5,27.5,26],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.44%<br />C: 19.18%<br />G: 19.03%<br />T: 31.35%<br />Filename: SRR400264_00_R2<br />Position: 27bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,64,1)","hoveron":"fills","name":"#686540","legendgroup":"#686540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[29,29,30.5,30.5,29],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.47%<br />C: 19.18%<br />G: 19.04%<br />T: 31.31%<br />Filename: SRR400264_00_R2<br />Position: 30bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,64,1)","hoveron":"fills","name":"#686540","legendgroup":"#686540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[22,22,23.5,23.5,22],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.47%<br />C: 19.19%<br />G: 19.05%<br />T: 31.28%<br />Filename: SRR400264_01_R1<br />Position: 23bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,64,1)","hoveron":"fills","name":"#686540","legendgroup":"#686540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[34,34,35.5,35.5,34],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.47%<br />C: 19.21%<br />G: 18.96%<br />T: 31.36%<br />Filename: SRR400264_01_R1<br />Position: 35bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,64,1)","hoveron":"fills","name":"#686540","legendgroup":"#686540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[18,18,19.5,19.5,18],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.53%<br />C: 19.19%<br />G: 18.96%<br />T: 31.31%<br />Filename: SRR400264_01_R1<br />Position: 19bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,64,1)","hoveron":"fills","name":"#686540","legendgroup":"#686540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[28,28,29.5,29.5,28],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.53%<br />C: 19.29%<br />G: 18.98%<br />T: 31.21%<br />Filename: SRR400264_01_R2<br />Position: 29bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,64,1)","hoveron":"fills","name":"#686540","legendgroup":"#686540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[23,23,24.5,24.5,23],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.57%<br />C: 19.16%<br />G: 19.01%<br />T: 31.26%<br />Filename: SRR400264_00_R2<br />Position: 24bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,64,1)","hoveron":"fills","name":"#686540","legendgroup":"#686540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[17,17,18.5,18.5,17],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.32%<br />C: 19.5%<br />G: 18.88%<br />T: 31.3%<br />Filename: SRR400264_00_R2<br />Position: 18bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,65,1)","hoveron":"fills","name":"#686541","legendgroup":"#686541","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[31,31,32.5,32.5,31],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.34%<br />C: 19.52%<br />G: 18.89%<br />T: 31.25%<br />Filename: SRR400264_01_R2<br />Position: 32bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,65,1)","hoveron":"fills","name":"#686541","legendgroup":"#686541","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[33,33,34.5,34.5,33],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.35%<br />C: 19.44%<br />G: 18.91%<br />T: 31.3%<br />Filename: SRR400264_01_R2<br />Position: 34bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,101,65,1)","hoveron":"fills","name":"#686541","legendgroup":"#686541","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[6,6,7.5,7.5,6],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.73%<br />C: 18.63%<br />G: 19.07%<br />T: 31.58%<br />Filename: SRR400264_00_R1<br />Position: 7bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,102,62,1)","hoveron":"fills","name":"#68663E","legendgroup":"#68663E","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[29,29,30.5,30.5,29],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.48%<br />C: 19.34%<br />G: 18.9%<br />T: 31.28%<br />Filename: SRR400264_01_R1<br />Position: 30bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,102,64,1)","hoveron":"fills","name":"#686640","legendgroup":"#686640","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[30,30,31.5,31.5,30],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.69%<br />C: 19.09%<br />G: 18.94%<br />T: 31.28%<br />Filename: SRR400264_01_R2<br />Position: 31bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,102,64,1)","hoveron":"fills","name":"#686640","legendgroup":"#686640","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[27,27,28.5,28.5,27],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.54%<br />C: 19.41%<br />G: 18.87%<br />T: 31.17%<br />Filename: SRR400264_01_R2<br />Position: 28bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,102,65,1)","hoveron":"fills","name":"#686641","legendgroup":"#686641","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[14,14,15.5,15.5,14],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.73%<br />C: 19.2%<br />G: 18.86%<br />T: 31.21%<br />Filename: SRR400264_00_R2<br />Position: 15bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,103,64,1)","hoveron":"fills","name":"#686740","legendgroup":"#686740","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[13,13,14.5,14.5,13],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.88%<br />C: 19.08%<br />G: 18.88%<br />T: 31.15%<br />Filename: SRR400264_00_R2<br />Position: 14bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(104,103,64,1)","hoveron":"fills","name":"#686740","legendgroup":"#686740","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[21,21,22.5,22.5,21],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.25%<br />C: 19.13%<br />G: 19.02%<br />T: 31.59%<br />Filename: SRR400264_01_R2<br />Position: 22bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(105,100,63,1)","hoveron":"fills","name":"#69643F","legendgroup":"#69643F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[15,15,16.5,16.5,15],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.38%<br />C: 18.86%<br />G: 19%<br />T: 31.76%<br />Filename: SRR400264_01_R1<br />Position: 16bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(105,101,63,1)","hoveron":"fills","name":"#69653F","legendgroup":"#69653F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[16,16,17.5,17.5,16],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.4%<br />C: 19.04%<br />G: 18.97%<br />T: 31.6%<br />Filename: SRR400264_00_R2<br />Position: 17bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(105,101,63,1)","hoveron":"fills","name":"#69653F","legendgroup":"#69653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[25,25,26.5,26.5,25],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.45%<br />C: 19.06%<br />G: 18.97%<br />T: 31.51%<br />Filename: SRR400264_01_R2<br />Position: 26bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(105,101,63,1)","hoveron":"fills","name":"#69653F","legendgroup":"#69653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[16,16,17.5,17.5,16],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.52%<br />C: 19.06%<br />G: 18.96%<br />T: 31.46%<br />Filename: SRR400264_01_R2<br />Position: 17bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(105,101,63,1)","hoveron":"fills","name":"#69653F","legendgroup":"#69653F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[22,22,23.5,23.5,22],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.33%<br />C: 19.23%<br />G: 18.96%<br />T: 31.48%<br />Filename: SRR400264_01_R2<br />Position: 23bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(105,101,64,1)","hoveron":"fills","name":"#696540","legendgroup":"#696540","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[17,17,18.5,18.5,17],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.33%<br />C: 19.31%<br />G: 18.93%<br />T: 31.43%<br />Filename: SRR400264_00_R1<br />Position: 18bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(105,101,64,1)","hoveron":"fills","name":"#696540","legendgroup":"#696540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[29,29,30.5,30.5,29],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.34%<br />C: 19.2%<br />G: 18.87%<br />T: 31.58%<br />Filename: SRR400264_01_R2<br />Position: 30bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(105,101,64,1)","hoveron":"fills","name":"#696540","legendgroup":"#696540","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[15,15,16.5,16.5,15],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.6%<br />C: 18.89%<br />G: 18.88%<br />T: 31.62%<br />Filename: SRR400264_00_R2<br />Position: 16bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(105,102,63,1)","hoveron":"fills","name":"#69663F","legendgroup":"#69663F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[15,15,16.5,16.5,15],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.64%<br />C: 18.98%<br />G: 18.88%<br />T: 31.5%<br />Filename: SRR400264_00_R1<br />Position: 16bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(105,102,63,1)","hoveron":"fills","name":"#69663F","legendgroup":"#69663F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[22,22,23.5,23.5,22],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.46%<br />C: 19.15%<br />G: 18.89%<br />T: 31.5%<br />Filename: SRR400264_00_R2<br />Position: 23bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(105,102,64,1)","hoveron":"fills","name":"#696640","legendgroup":"#696640","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[27,27,28.5,28.5,27],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.61%<br />C: 19.21%<br />G: 18.82%<br />T: 31.36%<br />Filename: SRR400264_00_R2<br />Position: 28bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(105,102,64,1)","hoveron":"fills","name":"#696640","legendgroup":"#696640","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[19,19,20.5,20.5,19],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.63%<br />C: 19.01%<br />G: 18.84%<br />T: 31.52%<br />Filename: SRR400264_00_R2<br />Position: 20bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(105,102,64,1)","hoveron":"fills","name":"#696640","legendgroup":"#696640","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[16,16,17.5,17.5,16],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.46%<br />C: 18.97%<br />G: 18.82%<br />T: 31.74%<br />Filename: SRR400264_00_R1<br />Position: 17bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(106,102,63,1)","hoveron":"fills","name":"#6A663F","legendgroup":"#6A663F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[18,18,19.5,19.5,18],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.49%<br />C: 19.3%<br />G: 18.72%<br />T: 31.49%<br />Filename: SRR400264_01_R2<br />Position: 19bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(106,102,65,1)","hoveron":"fills","name":"#6A6641","legendgroup":"#6A6641","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[18,18,19.5,19.5,18],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.66%<br />C: 19.02%<br />G: 18.74%<br />T: 31.59%<br />Filename: SRR400264_00_R2<br />Position: 19bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(106,103,64,1)","hoveron":"fills","name":"#6A6740","legendgroup":"#6A6740","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[8,8,9.5,9.5,8],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 29.85%<br />C: 18.79%<br />G: 18.83%<br />T: 32.53%<br />Filename: SRR400264_00_R2<br />Position: 9bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(109,100,63,1)","hoveron":"fills","name":"#6D643F","legendgroup":"#6D643F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[8,8,9.5,9.5,8],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 29.88%<br />C: 18.86%<br />G: 18.77%<br />T: 32.49%<br />Filename: SRR400264_01_R2<br />Position: 9bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(109,100,63,1)","hoveron":"fills","name":"#6D643F","legendgroup":"#6D643F","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[8,8,9.5,9.5,8],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.05%<br />C: 18.83%<br />G: 18.74%<br />T: 32.38%<br />Filename: SRR400264_00_R1<br />Position: 9bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(109,101,63,1)","hoveron":"fills","name":"#6D653F","legendgroup":"#6D653F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[5,5,6.5,6.5,5],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.18%<br />C: 19.39%<br />G: 18.34%<br />T: 32.09%<br />Filename: SRR400264_00_R2<br />Position: 6bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(109,103,66,1)","hoveron":"fills","name":"#6D6742","legendgroup":"#6D6742","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[5,5,6.5,6.5,5],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.3%<br />C: 19.45%<br />G: 18.36%<br />T: 31.89%<br />Filename: SRR400264_01_R2<br />Position: 6bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(109,103,66,1)","hoveron":"fills","name":"#6D6742","legendgroup":"#6D6742","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[8,8,9.5,9.5,8],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.03%<br />C: 19.11%<br />G: 18.46%<br />T: 32.41%<br />Filename: SRR400264_01_R1<br />Position: 9bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(110,102,65,1)","hoveron":"fills","name":"#6E6641","legendgroup":"#6E6641","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[5,5,6.5,6.5,5],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.33%<br />C: 19.37%<br />G: 18.08%<br />T: 32.21%<br />Filename: SRR400264_00_R1<br />Position: 6bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(111,105,67,1)","hoveron":"fills","name":"#6F6943","legendgroup":"#6F6943","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[5,5,6.5,6.5,5],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.62%<br />C: 19.21%<br />G: 18.02%<br />T: 32.15%<br />Filename: SRR400264_01_R1<br />Position: 6bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(111,106,66,1)","hoveron":"fills","name":"#6F6A42","legendgroup":"#6F6A42","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[7,7,8.5,8.5,7],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 30.35%<br />C: 19.08%<br />G: 17.83%<br />T: 32.74%<br />Filename: SRR400264_00_R2<br />Position: 8bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(114,106,66,1)","hoveron":"fills","name":"#726A42","legendgroup":"#726A42","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[7,7,8.5,8.5,7],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 30.42%<br />C: 19.19%<br />G: 17.73%<br />T: 32.66%<br />Filename: SRR400264_01_R1<br />Position: 8bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(114,106,67,1)","hoveron":"fills","name":"#726A43","legendgroup":"#726A43","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[7,7,8.5,8.5,7],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 30.56%<br />C: 19.02%<br />G: 17.74%<br />T: 32.68%<br />Filename: SRR400264_01_R2<br />Position: 8bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(114,107,67,1)","hoveron":"fills","name":"#726B43","legendgroup":"#726B43","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[7,7,8.5,8.5,7],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 30.46%<br />C: 19.02%<br />G: 17.74%<br />T: 32.77%<br />Filename: SRR400264_00_R1<br />Position: 8bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(115,107,67,1)","hoveron":"fills","name":"#736B43","legendgroup":"#736B43","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[2,2,3.5,3.5,2],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 28.54%<br />C: 25.13%<br />G: 15.87%<br />T: 30.45%<br />Filename: SRR400264_01_R2<br />Position: 3bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(115,107,95,1)","hoveron":"fills","name":"#736B5F","legendgroup":"#736B5F","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[2,2,3.5,3.5,2],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 28.6%<br />C: 24.96%<br />G: 15.82%<br />T: 30.62%<br />Filename: SRR400264_00_R2<br />Position: 3bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(115,108,94,1)","hoveron":"fills","name":"#736C5E","legendgroup":"#736C5E","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[2,2,3.5,3.5,2],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 27.87%<br />C: 25.77%<br />G: 15.47%<br />T: 30.89%<br />Filename: SRR400264_01_R1<br />Position: 3bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(118,106,98,1)","hoveron":"fills","name":"#766A62","legendgroup":"#766A62","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[2,2,3.5,3.5,2],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 27.72%<br />C: 25.97%<br />G: 15.33%<br />T: 30.98%<br />Filename: SRR400264_00_R1<br />Position: 3bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(119,106,100,1)","hoveron":"fills","name":"#776A64","legendgroup":"#776A64","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[4,4,5.5,5.5,4],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 28.36%<br />C: 16.1%<br />G: 17.09%<br />T: 38.45%<br />Filename: SRR400264_00_R2<br />Position: 5bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(138,102,58,1)","hoveron":"fills","name":"#8A663A","legendgroup":"#8A663A","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[4,4,5.5,5.5,4],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 28.47%<br />C: 16.18%<br />G: 16.86%<br />T: 38.48%<br />Filename: SRR400264_01_R2<br />Position: 5bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(139,103,59,1)","hoveron":"fills","name":"#8B673B","legendgroup":"#8B673B","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[4,4,5.5,5.5,4],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 28.23%<br />C: 16.11%<br />G: 16.8%<br />T: 38.86%<br />Filename: SRR400264_00_R1<br />Position: 5bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(141,102,58,1)","hoveron":"fills","name":"#8D663A","legendgroup":"#8D663A","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[4,4,5.5,5.5,4],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 28.13%<br />C: 16.39%<br />G: 16.65%<br />T: 38.83%<br />Filename: SRR400264_01_R1<br />Position: 5bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(142,103,60,1)","hoveron":"fills","name":"#8E673C","legendgroup":"#8E673C","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[3,3,4.5,4.5,3],"y":[1.5,2.5,2.5,1.5,1.5],"text":"A: 29.23%<br />C: 16.76%<br />G: 15.56%<br />T: 38.45%<br />Filename: SRR400264_01_R2<br />Position: 4bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(146,111,64,1)","hoveron":"fills","name":"#926F40","legendgroup":"#926F40","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[3,3,4.5,4.5,3],"y":[0.5,1.5,1.5,0.5,0.5],"text":"A: 29.11%<br />C: 16.71%<br />G: 15.55%<br />T: 38.64%<br />Filename: SRR400264_00_R2<br />Position: 4bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(147,111,64,1)","hoveron":"fills","name":"#936F40","legendgroup":"#936F40","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[3,3,4.5,4.5,3],"y":[3.5,4.5,4.5,3.5,3.5],"text":"A: 28.97%<br />C: 16.78%<br />G: 15.09%<br />T: 39.17%<br />Filename: SRR400264_01_R1<br />Position: 4bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(152,112,65,1)","hoveron":"fills","name":"#987041","legendgroup":"#987041","showlegend":true,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null},{"x":[3,3,4.5,4.5,3],"y":[2.5,3.5,3.5,2.5,2.5],"text":"A: 28.98%<br />C: 16.73%<br />G: 15.05%<br />T: 39.25%<br />Filename: SRR400264_00_R1<br />Position: 4bp","type":"scatter","mode":"lines","line":{"width":1.88976377952756,"color":"transparent","dash":"none"},"fill":"toself","fillcolor":"rgba(152,112,65,1)","hoveron":"fills","name":"#987041","legendgroup":"#987041","showlegend":false,"xaxis":"x3","yaxis":"y","hoverinfo":"text","frame":null}],"layout":{"xaxis":{"domain":[0,0.099],"automargin":true,"type":"linear","autorange":false,"range":[-4.55450326599949,0],"tickmode":"array","ticktext":["0","1","2","3","4"],"tickvals":[0,-1,-2,-3,-4],"categoryorder":"array","categoryarray":["0","1","2","3","4"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":false,"tickfont":{"color":null,"family":null,"size":0},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":false,"gridcolor":null,"gridwidth":0,"zeroline":false,"anchor":"y","hoverformat":".2f"},"xaxis2":{"domain":[0.101,0.179],"automargin":true,"type":"linear","autorange":false,"range":[0.5,1.5],"tickmode":"array","ticktext":["0.50","0.75","1.00","1.25","1.50"],"tickvals":[0.5,0.75,1,1.25,1.5],"categoryorder":"array","categoryarray":["0.50","0.75","1.00","1.25","1.50"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":false,"tickfont":{"color":null,"family":null,"size":0},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":true,"gridcolor":"rgba(235,235,235,1)","gridwidth":0.66417600664176,"zeroline":false,"anchor":"y","hoverformat":".2f"},"xaxis3":{"domain":[0.181,1],"automargin":true,"type":"linear","autorange":false,"range":[0,36.5],"tickmode":"array","ticktext":["0","10","20","30"],"tickvals":[0,10,20,30],"categoryorder":"array","categoryarray":["0","10","20","30"],"nticks":null,"ticks":"outside","tickcolor":"rgba(51,51,51,1)","ticklen":3.65296803652968,"tickwidth":0.66417600664176,"showticklabels":true,"tickfont":{"color":"rgba(77,77,77,1)","family":"","size":11.689497716895},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":false,"gridcolor":null,"gridwidth":0,"zeroline":false,"anchor":"y","hoverformat":".2f"},"yaxis":{"domain":[0,1],"automargin":true,"type":"linear","autorange":false,"range":[0.5,4.5],"tickmode":"array","ticktext":["1","2","3","4"],"tickvals":[1,2,3,4],"categoryorder":"array","categoryarray":["1","2","3","4"],"nticks":null,"ticks":"","tickcolor":null,"ticklen":3.65296803652968,"tickwidth":0,"showticklabels":false,"tickfont":{"color":null,"family":null,"size":0},"tickangle":-0,"showline":false,"linecolor":null,"linewidth":0,"showgrid":false,"gridcolor":null,"gridwidth":0,"zeroline":false,"anchor":"x","title":{"text":"","font":{"color":null,"family":null,"size":0}},"hoverformat":".2f"},"annotations":[],"shapes":[{"type":"rect","fillcolor":"transparent","line":{"color":"rgba(51,51,51,1)","width":0.66417600664176,"linetype":"solid"},"yref":"paper","xref":"paper","x0":0,"x1":0.099,"y0":0,"y1":1},{"type":"rect","fillcolor":"transparent","line":{"color":"rgba(51,51,51,1)","width":0.66417600664176,"linetype":"solid"},"yref":"paper","xref":"paper","x0":0.101,"x1":0.179,"y0":0,"y1":1},{"type":"rect","fillcolor":"transparent","line":{"color":"rgba(51,51,51,1)","width":0.66417600664176,"linetype":"solid"},"yref":"paper","xref":"paper","x0":0.181,"x1":1,"y0":0,"y1":1}],"images":[],"margin":{"t":26.4370515329419,"r":7.30593607305936,"b":40.3913894324853,"l":10.958904109589},"paper_bgcolor":"rgba(255,255,255,1)","font":{"color":"rgba(0,0,0,1)","family":"","size":14.6118721461187},"showlegend":false,"legend":{"bgcolor":"rgba(255,255,255,1)","bordercolor":"transparent","borderwidth":1.88976377952756,"font":{"color":"rgba(0,0,0,1)","family":"","size":11.689497716895}},"hovermode":"closest","barmode":"relative","plot_bgcolor":"rgba(255,255,255,1)"},"attrs":{"4e0249f2ed4":{"xend":{},"yend":{},"x":{},"y":{},"type":"scatter"},"4e061521790":{"key":{},"x":{},"y":{},"fill":{},"type":"scatter"},"4e01e4bccde":{"yintercept":{}},"4e05dc39837":{"fill":{},"A":{},"C":{},"G":{},"T":{},"Filename":{},"Position":{},"xmin":{},"xmax":{},"ymin":{},"ymax":{},"type":"scatter"}},"source":"A","config":{"doubleClick":"reset","showSendToCloud":false},"highlight":{"on":"plotly_click","persistent":false,"dynamic":false,"selectize":false,"opacityDim":0.2,"selected":{"opacity":1},"debounce":0},"subplot":true,"shinyEvents":["plotly_hover","plotly_click","plotly_selected","plotly_relayout","plotly_brushed","plotly_brushing","plotly_clickannotation","plotly_doubleclick","plotly_deselect","plotly_afterplot","plotly_sunburstclick"],"base_url":"https://plot.ly"},"evals":[],"jsHooks":[]}</script>
+<p class="caption">
+<em>Position specific base content for each sample.</em>
+</p>
+</div>
+<br>
+<p>
+<button type="button" class="btn btn-default btn-workflowr btn-workflowr-sessioninfo" data-toggle="collapse" data-target="#workflowr-sessioninfo" style="display: block;">
+<span class="glyphicon glyphicon-wrench" aria-hidden="true"></span> Session information
+</button>
+</p>
+<div id="workflowr-sessioninfo" class="collapse">
+<pre class="r"><code>sessionInfo()</code></pre>
+<pre><code>R version 4.1.0 (2021-05-18)
+Platform: x86_64-conda-linux-gnu (64-bit)
+Running under: Ubuntu 20.04.2 LTS
+
+Matrix products: default
+BLAS/LAPACK: /mnt/d/snakemake_hic/.snakemake/conda/b9a8446e9f36bfe03e9531bb7c76ccc6/lib/libopenblasp-r0.3.17.so
+
+locale:
+ [1] LC_CTYPE=C.UTF-8       LC_NUMERIC=C           LC_TIME=C.UTF-8       
+ [4] LC_COLLATE=C.UTF-8     LC_MONETARY=C.UTF-8    LC_MESSAGES=C.UTF-8   
+ [7] LC_PAPER=C.UTF-8       LC_NAME=C              LC_ADDRESS=C          
+[10] LC_TELEPHONE=C         LC_MEASUREMENT=C.UTF-8 LC_IDENTIFICATION=C   
+
+attached base packages:
+[1] parallel  stats     graphics  grDevices utils     datasets  methods  
+[8] base     
+
+other attached packages:
+ [1] plotly_4.9.4.1      cowplot_1.1.1       glue_1.4.2         
+ [4] pander_0.6.4        scales_1.1.1        yaml_2.2.1         
+ [7] forcats_0.5.1       stringr_1.4.0       dplyr_1.0.7        
+[10] purrr_0.3.4         readr_1.4.0         tidyr_1.1.3        
+[13] tidyverse_1.3.1     ngsReports_1.8.0    tibble_3.1.3       
+[16] ggplot2_3.3.5       BiocGenerics_0.38.0 workflowr_1.6.2    
+
+loaded via a namespace (and not attached):
+ [1] bitops_1.0-7           fs_1.5.0               lubridate_1.7.10      
+ [4] RColorBrewer_1.1-2     httr_1.4.2             rprojroot_2.0.2       
+ [7] GenomeInfoDb_1.28.0    tools_4.1.0            backports_1.2.1       
+[10] utf8_1.2.2             R6_2.5.0               DT_0.18               
+[13] DBI_1.1.1              lazyeval_0.2.2         colorspace_2.0-2      
+[16] withr_2.4.2            tidyselect_1.1.1       compiler_4.1.0        
+[19] git2r_0.28.0           cli_3.0.1              rvest_1.0.1           
+[22] xml2_1.3.2             ggdendro_0.1.22        labeling_0.4.2        
+[25] digest_0.6.27          rmarkdown_2.9          XVector_0.32.0        
+[28] pkgconfig_2.0.3        htmltools_0.5.1.1      highr_0.9             
+[31] dbplyr_2.1.1           htmlwidgets_1.5.3      rlang_0.4.11          
+[34] readxl_1.3.1           rstudioapi_0.13        farver_2.1.0          
+[37] generics_0.1.0         zoo_1.8-9              jsonlite_1.7.2        
+[40] crosstalk_1.1.1        RCurl_1.98-1.3         magrittr_2.0.1        
+[43] GenomeInfoDbData_1.2.6 Rcpp_1.0.7             munsell_0.5.0         
+[46] S4Vectors_0.30.0       fansi_0.4.2            lifecycle_1.0.0       
+[49] stringi_1.7.3          whisker_0.4            MASS_7.3-54           
+[52] zlibbioc_1.38.0        plyr_1.8.6             grid_4.1.0            
+[55] promises_1.2.0.1       crayon_1.4.1           lattice_0.20-44       
+[58] Biostrings_2.60.0      haven_2.4.3            hms_1.1.0             
+[61] knitr_1.33             pillar_1.6.2           reshape2_1.4.4        
+[64] stats4_4.1.0           reprex_2.0.1           evaluate_0.14         
+[67] data.table_1.14.0      modelr_0.1.8           vctrs_0.3.8           
+[70] httpuv_1.6.1           cellranger_1.1.0       gtable_0.3.0          
+[73] assertthat_0.2.1       xfun_0.24              broom_0.7.9           
+[76] later_1.2.0            viridisLite_0.4.0      IRanges_2.26.0        
+[79] ellipsis_0.3.2         here_1.0.1            </code></pre>
+</div>
+</div>
+</div>
+
+
+<!-- Adjust MathJax settings so that all math formulae are shown using
+TeX fonts only; see
+http://docs.mathjax.org/en/latest/configuration.html.  This will make
+the presentation more consistent at the cost of the webpage sometimes
+taking slightly longer to load. Note that this only works because the
+footer is added to webpages before the MathJax javascript. -->
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+    "HTML-CSS": { availableFonts: ["TeX"] }
+  });
+</script>
+
+
+
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+// add bootstrap table styles to pandoc tables
+function bootstrapStylePandocTables() {
+  $('tr.odd').parent('tbody').parent('table').addClass('table table-condensed');
+}
+$(document).ready(function () {
+  bootstrapStylePandocTables();
+});
+
+
+</script>
+
+<!-- tabsets -->
+
+<script>
+$(document).ready(function () {
+  window.buildTabsets("TOC");
+});
+
+$(document).ready(function () {
+  $('.tabset-dropdown > .nav-tabs > li').click(function () {
+    $(this).parent().toggleClass('nav-tabs-open');
+  });
+});
+</script>
+
+<!-- code folding -->
+<script>
+$(document).ready(function () {
+  window.initializeCodeFolding("hide" === "show");
+});
+</script>
+
+<script>
+$(document).ready(function ()  {
+
+    // temporarily add toc-ignore selector to headers for the consistency with Pandoc
+    $('.unlisted.unnumbered').addClass('toc-ignore')
+
+    // move toc-ignore selectors from section div to header
+    $('div.section.toc-ignore')
+        .removeClass('toc-ignore')
+        .children('h1,h2,h3,h4,h5').addClass('toc-ignore');
+
+    // establish options
+    var options = {
+      selectors: "h1,h2,h3",
+      theme: "bootstrap3",
+      context: '.toc-content',
+      hashGenerator: function (text) {
+        return text.replace(/[.\\/?&!#<>]/g, '').replace(/\s/g, '_');
+      },
+      ignoreSelector: ".toc-ignore",
+      scrollTo: 0
+    };
+    options.showAndHide = true;
+    options.smoothScroll = true;
+
+    // tocify
+    var toc = $("#TOC").tocify(options).data("toc-tocify");
+});
+</script>
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>
