@@ -3,6 +3,7 @@ rule install_maxhic:
         exe = "scripts/MaxHiC/Main.py",
         general = directory("scripts/MaxHiC/General"),
         capture = directory("scripts/MaxHiC/Capture")
+    log: "logs/MaxHiC/install.log"
     threads: 1
     shell:
         """

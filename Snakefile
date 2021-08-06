@@ -39,12 +39,14 @@ read_ext = [config['hicpro']['pair1_ext'], config['hicpro']['pair2_ext']]
 build = config['ref']['build']
 genbank = config['ref']['genbank']
 gencode = str(config['ref']['gencode'])
-ref_path = os.path.join(
-    config['ref']['root'],
-    "gencode-release-" + gencode,
-    build,
-    "dna"
+ref_path = os.path.abspath(
+    os.path.join(
+        config['ref']['root'],
+        "gencode-release-" + gencode,
+        build,
+        "dna"
     )
+)
 # Key output files
 assembly = config['ref']['assembly'] + ".genome"
 ref_fa = build + "." + assembly + ".fa"
@@ -122,32 +124,45 @@ HIC_STATS = expand(
     sample = samples,
     suffix = [
         '.mRSstat', read_ext[0] + ".mmapstat", read_ext[1] + ".mmapstat",
-        "_allValidPairs.mergestat"
-        ]
+        "_allValidPairs.mergestat", ".mpairstat"
+    ]
+)
+HIC_QC_PDF = expand(
+    [
+        os.path.join(
+            hic_data_path, "hic_results", "pic", "{sample}",
+            "plot{file}_{sample}.pdf"
+        )
+    ],
+    sample = samples,
+    file = ['HiCFragment', 'MappingPairing', 'Mapping']
 )
 ALL_OUTPUTS.extend(
-    [HIC_VALID_PAIRS, HIC_MATRICES, HIC_STATS]
-    )
+    [HIC_VALID_PAIRS, HIC_MATRICES, HIC_STATS, HIC_QC_PDF]
+)
 
 
 #####################
 ## Max HiC Outputs ##
 #####################
-MAXHIC_INTERACTIONS = expand(
-    ["output/MaxHiC/{bin}/{type}_interactions.txt.gz"],
-    bin = bins, type = ['cis', 'trans']
-    )
-ALL_OUTPUTS.extend(MAXHIC_INTERACTIONS)
+# MAXHIC_INTERACTIONS = expand(
+#     ["output/MaxHiC/{bin}/{type}_interactions.txt.gz"],
+#     bin = bins, type = ['cis', 'trans']
+#     )
+# ALL_OUTPUTS.extend(MAXHIC_INTERACTIONS)
 
 
 ##########################
 ## QC Workflowr Reports ##
 ##########################
-WFLOW_OUT = expand(
-    ["docs/{file}.html"],
-    file = ['index', 'qc_raw', 'qc_trimmed', 'qc_hic', 'define_interactions']
-)
-ALL_OUTPUTS.extend(WFLOW_OUT)
+wd = os.getcwd()
+rproj = os.path.basename(wd) + ".Rproj"
+# WFLOW_OUT = expand(
+#     ["docs/{file}.html"],
+#     file = ['index', 'qc_raw', 'qc_trimmed', 'qc_hic', 'define_interactions']
+# )
+# ALL_OUTPUTS.extend([rproj])
+# ALL_OUTPUTS.extend(WFLOW_OUT)
 
 #####################
 ## Rules & Outputs ##

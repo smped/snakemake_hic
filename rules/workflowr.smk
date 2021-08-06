@@ -1,5 +1,14 @@
+rule initialise_r_project:
+    output: rproj
+    threads: 1
+    shell:
+        """
+        echo -e "Version: 1.0\n\nRestoreWorkspace: Default\nSaveWorkspace: Default\nAlwaysSaveHistory: Default\n\nEnableCodeIndexing: Yes\nUseSpacesForTab: Yes\nNumSpacesForTab: 2\nEncoding: UTF-8\n\nRnwWeave: knitr\nLaTeX: pdfLaTeX\n\nAutoAppendNewline: Yes\nStripTrailingWhitespace: Yes" > {output}
+        """
+
 rule build_site_index:
     input:
+        rproj = rproj,
         rulegraph = "rules/rulegraph.dot",
         wflow_yml = "analysis/_site.yml",
         config_yml = "config/config.yml",
@@ -26,6 +35,7 @@ rule build_site_index:
 
 rule build_raw_qc_report:
     input:
+        rproj = rproj,
         fqc = expand(
             ["data/raw/FastQC/{sample}_{reads}_fastqc.zip"],
             reads = ['R1', 'R2'],
@@ -48,6 +58,7 @@ rule build_raw_qc_report:
 
 rule build_trimmed_qc_report:
     input:
+        rproj = rproj,
         fqc = expand(
             ["data/trimmed/FastQC/{sample}_{reads}_fastqc.zip"],
             reads = ['R1', 'R2'],
@@ -70,6 +81,7 @@ rule build_trimmed_qc_report:
 
 rule build_hic_qc_report:
     input:
+        rproj = rproj,
         frags = fragment_lengths,
         stat =  expand(
             [
@@ -108,6 +120,7 @@ rule build_hic_qc_report:
 
 rule define_significant_interactions:
     input:
+        rproj = rproj,
         interactions = expand(
             [
                 os.path.join(

@@ -149,23 +149,33 @@ rule hicpro_qc:
     input:
         config = hicpro_config,
         bwt2 = expand(
-                ["{path}/{sample_path}{reads}_" + build + "." + assembly + "{suffix}"],
-                path = os.path.join(bowtie_data_path, "bwt2"),
-                sample_path = df['path'],
-                reads = read_ext,
-                suffix = ['.bwt2merged.bam', '.mapstat']
-            )
-    output:
-        temp(
-          expand(
+            ["{path}/{sample_path}{reads}_" + build + "." + assembly + "{suffix}"],
+            path = os.path.join(bowtie_data_path, "bwt2"),
+            sample_path = df['path'],
+            reads = read_ext,
+            suffix = ['.bwt2merged.bam', '.mapstat']
+        ),
+        pairs = expand(
             [
-              os.path.join(
-                hic_data_path, "hic_results", "pic", "{sample}",
-                "plotMapping_{sample}.pdf"
-              )
+                os.path.join(
+                    hic_data_path, "hic_results", "data", "{sample}", 
+                    "{sample}.allValidPairs"
+                )
             ],
             sample = samples
-          )
+        )
+    output:
+        temp(
+            expand(
+                [
+                    os.path.join(
+                        hic_data_path, "hic_results", "pic", "{sample}",
+                        "plot{file}_{sample}.pdf"
+                    )
+                ],
+                sample = samples,
+                file = ['HiCFragment', 'MappingPairing', 'Mapping', 'HiCContactRanges', 'HiCFragmentSize']
+            )
         )
     params:
         indir = os.path.join(bowtie_data_path, "bwt2"),
@@ -185,27 +195,27 @@ rule hicpro_proc:
     input:
         config = hicpro_config,
         bwt2 = expand(
-                ["{path}/{sample_path}{reads}_" + build + "." + assembly + "{suffix}"],
-                path = os.path.join(bowtie_data_path, "bwt2"),
-                sample_path = df['path'],
-                reads = read_ext,
-                suffix = ['.bwt2merged.bam', '.mapstat']
-            )
+            ["{path}/{sample_path}{reads}_" + build + "." + assembly + "{suffix}"],
+            path = os.path.join(bowtie_data_path, "bwt2"),
+            sample_path = df['path'],
+            reads = read_ext,
+            suffix = ['.bwt2merged.bam', '.mapstat']
+        )
     output:
         bam = temp(
-          expand(
-            [bowtie_data_path + "/bwt2/{sample_path}_{meta}.{suffix}"],
-            meta = build + "." + assembly + ".bwt2pairs",
-            suffix = ['bam', 'pairstat'],
-            sample_path = df['path']
-          )
+            expand(
+                [bowtie_data_path + "/bwt2/{sample_path}_{meta}.{suffix}"],
+                meta = build + "." + assembly + ".bwt2pairs",
+                suffix = ['bam', 'pairstat'],
+                sample_path = df['path']
+              )
         ),
         pairs = temp(
-          expand(
-            [hic_data_path + "/hic_results/data/{sample_path}_{meta}.{suffix}"],
-            meta = build + "." + assembly + ".bwt2pairs",
-            suffix = ['DEPairs', 'DumpPairs', 'FiltPairs', 'REPairs', 'RSstat', 'SCPairs', 'SinglePairs', 'validPairs'],
-            sample_path = df['path']
+            expand(
+                [hic_data_path + "/hic_results/data/{sample_path}_{meta}.{suffix}"],
+                meta = build + "." + assembly + ".bwt2pairs",
+                suffix = ['DEPairs', 'DumpPairs', 'FiltPairs', 'REPairs', 'RSstat', 'SCPairs', 'SinglePairs', 'validPairs'],
+                sample_path = df['path']
             )
         )
     params:
@@ -232,26 +242,29 @@ rule hicpro_merge:
             sample_path = df['path']
             )
     output:
-      pairs = temp(
-        expand(
-          [hic_data_path + "/hic_results/data/{sample}/{sample}.allValidPairs"],
-          sample = samples
-        )
-      ),
-      ## *.mpairstat files are created when not specified, but not created
-      ## when specified. Currently excluded from required output
-      stat = temp(
-        expand(
-          [
-            os.path.join(
-              hic_data_path, "hic_results", "stats", "{sample}",
-              "{sample}{suffix}"
+        pairs = temp(
+            expand(
+                [
+                    os.path.join(
+                        hic_data_path, "hic_results", "data", "{sample}", 
+                        "{sample}.allValidPairs"
+                    )
+                ],
+                sample = samples
             )
-          ],
-          sample = samples,
-          suffix = ['.mRSstat', read_ext[0] + ".mmapstat", read_ext[1] + ".mmapstat", "_allValidPairs.mergestat"]
+        ),
+        stat = temp(
+            expand(
+                [
+                    os.path.join(
+                        hic_data_path, "hic_results", "stats", "{sample}",
+                        "{sample}{suffix}"
+                    )
+                ],
+                sample = samples,
+                suffix = ['.mRSstat', read_ext[0] + ".mmapstat", read_ext[1] + ".mmapstat", "_allValidPairs.mergestat", ".mpairstat"]
+            )
         )
-      )
     params:
         indir = hic_data_path + "/hic_results/data",
         outdir = hic_data_path
@@ -286,21 +299,7 @@ rule build_contact_maps:
           bin = bins,
           suffix = ['.matrix', '_abs.bed']
         )
-      ),
-      pic = expand(
-        [hic_data_path + "/hic_results/pic/{sample}/plot{file}_{sample}.pdf"],
-        sample = samples,
-        file = ['HiCFragmentSize']
       )
-      ## These don't get created when specified,
-      ## but do get created when not specified. Placing the output from qc
-      ## as required input didn't help either, so it's not likely to be an
-      ## I/O conflict
-      # pic = expand(
-      #   [hic_data_path + "/hic_results/pic/{sample}/plot{file}_{sample}.pdf"],
-      #   sample = samples,
-      #   file = ['HiCContactRanges', 'HiCFragmentSize', 'HiCFragment', 'MappingPairing']
-      # )
     params:
         indir = hic_data_path + "/hic_results/data",
         outdir = hic_data_path

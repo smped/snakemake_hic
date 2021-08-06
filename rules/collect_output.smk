@@ -55,7 +55,7 @@ rule collect_stats:
     shell:
         """
         ## The generic copy all. Clearly this will repeat every time though
-        cp {params.in_path}/* {params.out_path}
+        # cp {params.in_path}/* {params.out_path}
 
         ## Copy the specific files
         cp {input.stat} {output.stat}
