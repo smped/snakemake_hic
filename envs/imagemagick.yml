@@ -1,5 +1,5 @@
 channels:
   - defaults
-  - anaconda
+  - conda-forge
 dependencies:
-  - graphviz
+  - imagemagick=7.1

@@ -1,4 +1,4 @@
-rule get_maxhic:
+rule install_maxhic:
     output:
         exe = "scripts/MaxHiC/Main.py",
         general = directory("scripts/MaxHiC/General"),
@@ -16,7 +16,7 @@ rule get_maxhic:
 
 rule run_maxhic:
     input:
-        maxhic_exe = ancient(rules.get_maxhic.output.exe),
+        maxhic_exe = ancient(rules.install_maxhic.output.exe),
         mat = os.path.join(
             hic_output_path, "matrix", "raw", "{bin}", "merged_{bin}.matrix"
         ),

@@ -1,0 +1,82 @@
+digraph snakemake_dag {
+    graph[bgcolor=white, margin=0];
+    node[shape=box, style=rounded, fontname=sans,                 fontsize=10, penwidth=2];
+    edge[penwidth=2, color=grey];
+	0[label = "all", color = "0.16 0.6 0.85", style="rounded"];
+	1[label = "zip_fragment_bedfile", color = "0.64 0.6 0.85", style="rounded"];
+	2[label = "find_restriction_fragments", color = "0.62 0.6 0.85", style="rounded"];
+	3[label = "unzip_reference", color = "0.18 0.6 0.85", style="rounded"];
+	4[label = "get_reference", color = "0.11 0.6 0.85", style="rounded"];
+	5[label = "compress_merged_output", color = "0.36 0.6 0.85", style="rounded"];
+	6[label = "merge_interaction_matrices", color = "0.49 0.6 0.85", style="rounded"];
+	7[label = "build_contact_maps", color = "0.47 0.6 0.85", style="rounded"];
+	8[label = "make_hicpro_config", color = "0.22 0.6 0.85", style="rounded"];
+	9[label = "bowtie2_index", color = "0.09 0.6 0.85", style="rounded"];
+	10[label = "get_chrom_sizes", color = "0.31 0.6 0.85", style="rounded"];
+	11[label = "hicpro_merge", color = "0.51 0.6 0.85", style="rounded"];
+	12[label = "hicpro_proc", color = "0.27 0.6 0.85", style="rounded"];
+	13[label = "hicpro_mapping", color = "0.42 0.6 0.85", style="rounded"];
+	14[label = "adapter_removal", color = "0.60 0.6 0.85", style="rounded"];
+	15[label = "collect_output_valid_pairs", color = "0.20 0.6 0.85", style="rounded"];
+	16[label = "collect_output_matrices", color = "0.38 0.6 0.85", style="rounded"];
+	17[label = "collect_stats", color = "0.56 0.6 0.85", style="rounded"];
+	18[label = "run_maxhic", color = "0.13 0.6 0.85", style="rounded"];
+	19[label = "install_maxhic", color = "0.04 0.6 0.85", style="rounded"];
+	20[label = "build_site_index", color = "0.58 0.6 0.85", style="rounded"];
+	21[label = "build_raw_qc_report", color = "0.53 0.6 0.85", style="rounded"];
+	22[label = "raw_fastqc", color = "0.07 0.6 0.85", style="rounded"];
+	23[label = "build_trimmed_qc_report", color = "0.02 0.6 0.85", style="rounded"];
+	24[label = "trim_fastqc", color = "0.00 0.6 0.85", style="rounded"];
+	25[label = "build_hic_qc_report", color = "0.40 0.6 0.85", style="rounded"];
+	26[label = "get_fragment_lengths", color = "0.29 0.6 0.85", style="rounded"];
+	27[label = "convert_fragment_size_plot", color = "0.44 0.6 0.85", style="rounded"];
+	28[label = "define_significant_interactions", color = "0.24 0.6 0.85", style="rounded"];
+	23 -> 0
+	21 -> 0
+	5 -> 0
+	15 -> 0
+	17 -> 0
+	16 -> 0
+	20 -> 0
+	25 -> 0
+	28 -> 0
+	18 -> 0
+	1 -> 0
+	2 -> 1
+	3 -> 2
+	4 -> 3
+	6 -> 5
+	7 -> 6
+	11 -> 7
+	8 -> 7
+	10 -> 8
+	2 -> 8
+	9 -> 8
+	3 -> 9
+	8 -> 11
+	12 -> 11
+	13 -> 12
+	8 -> 12
+	9 -> 13
+	8 -> 13
+	14 -> 13
+	11 -> 15
+	7 -> 16
+	11 -> 17
+	6 -> 18
+	19 -> 18
+	23 -> 20
+	28 -> 20
+	25 -> 20
+	21 -> 20
+	22 -> 21
+	24 -> 23
+	14 -> 24
+	17 -> 25
+	27 -> 25
+	26 -> 25
+	2 -> 26
+	7 -> 27
+	18 -> 28
+	5 -> 28
+}            

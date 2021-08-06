@@ -33,6 +33,10 @@ rule collect_output_matrices:
         """
 
 rule collect_stats:
+    ## Given the problems generating some of these under HiC-Pro, most,
+    ## with the exception of the FragmentLength plot can be recreated in a more
+    ## informative manner using ggplot directly from the stats output
+    ## There is a cheeky copy all line here to cover it though
     input:
         stat = os.path.join(
             hic_data_path, "hic_results", "stats", "{sample}",
@@ -42,38 +46,41 @@ rule collect_stats:
         stat = os.path.join(
             hic_output_path, "stats", "{sample}", "{sample}{suffix}"
         )
+    params:
+        in_path = os.path.join(
+            hic_data_path, "hic_results", "stats", "{sample}"
+        ),
+        out_path = os.path.join(hic_output_path, "stats", "{sample}")
     threads: 1
     shell:
         """
+        ## The generic copy all. Clearly this will repeat every time though
+        cp {params.in_path}/* {params.out_path}
+
+        ## Copy the specific files
         cp {input.stat} {output.stat}
         """
 
-rule collect_pics:
-    ## Given the problems generating some of these under HiC-Pro, most,
-    ## with the exception of the FragmentLength plot can be recreated in a more
-    ## informative manner using ggplot directly from the stats output
-    ## There is a cheeky copy all line here to cover it though
-    input:
+rule convert_fragment_size_plot:
+    input: 
         pdf = os.path.join(
             hic_data_path, "hic_results", "pic", "{sample}",
-            "plot{file}_{sample}.pdf"
+            "plotHiCFragmentSize_{sample}.pdf"
         )
     output:
-        pdf = os.path.join(
-            hic_output_path, "pic", "{sample}", "plot{file}_{sample}.pdf"
+        png = os.path.join(
+            "docs", "assets", "plotHiCFragmentSize_{sample}.png"
         )
     params:
-        in_path = os.path.join(
-            hic_data_path, "hic_results", "pic", "{sample}"
-        ),
-        out_path = os.path.join(hic_output_path, "pic", "{sample}")
+        density = 150,
+        quality = 90
     threads: 1
+    conda: "../envs/imagemagick.yml"
     shell:
         """
-
-        ## The generic copy all
-        cp {params.in_path}/*pdf {params.out_path}
-
-        ## And the specific file we know is created & tracked
-        cp {input.pdf} {output.pdf}
+        convert \
+            -density {params.density} \
+            {input.pdf}[0] \
+            -quality {params.quality} \
+            {output.png}
         """

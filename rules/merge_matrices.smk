@@ -47,10 +47,10 @@ rule compress_merged_output:
         )
     output:
         mat = os.path.join(
-            hic_output_path, "matrix", "raw", "merged_{bin}.matrix.gz"
+            hic_output_path, "matrix", "merged_{bin}.matrix.gz"
         ),
         bed = os.path.join(
-            hic_output_path, "matrix", "raw", "merged_{bin}_abs.bed.gz"
+            hic_output_path, "matrix", "merged_{bin}_abs.bed.gz"
         )
     threads: 1
     shell:

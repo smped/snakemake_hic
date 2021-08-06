@@ -1,4 +1,4 @@
-rule find_rs_fragments:
+rule find_restriction_fragments:
     input: rules.unzip_reference.output
     output:
         rs = temp(rs_frags)
@@ -20,8 +20,19 @@ rule find_rs_fragments:
           {input}
         """
 
+rule get_fragment_lengths:
+    input: rs_frags
+    output: fragment_lengths
+    threads: 1
+    shell:
+        """
+        awk '{{print($3 - $2)}}' {input} | \
+          sort -n | \
+          uniq -c > {output}
+        """
+
 rule zip_fragment_bedfile:
-    input: rules.find_rs_fragments.output.rs
+    input: rules.find_restriction_fragments.output.rs
     output: rs_frags + ".gz"
     threads: 1
     shell:
@@ -39,7 +50,8 @@ rule make_hicpro_config:
           )
         ),
         rs = rs_frags,
-        chr_sizes = chr_sizes
+        chr_sizes = chr_sizes,
+	config = "config/config.yml"
     output:
         hicpro_config
     params:
@@ -274,8 +286,13 @@ rule build_contact_maps:
           bin = bins,
           suffix = ['.matrix', '_abs.bed']
         )
+      ),
+      pic = expand(
+        [hic_data_path + "/hic_results/pic/{sample}/plot{file}_{sample}.pdf"],
+        sample = samples,
+        file = ['HiCFragmentSize']
       )
-      ## Can't figure out why these don't get created when specified,
+      ## These don't get created when specified,
       ## but do get created when not specified. Placing the output from qc
       ## as required input didn't help either, so it's not likely to be an
       ## I/O conflict

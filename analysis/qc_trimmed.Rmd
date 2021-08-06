@@ -1,0 +1,190 @@
+---
+title: "QC On Trimmed Data"
+author: |
+    | Stephen Pederson
+    | Dame Roma Mitchell Cancer Research Laboratories
+    | Adelaide Medical School
+    | University of Adelaide
+date: "`r format(Sys.Date(), '%d %B, %Y')`"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  fig.height = 7,
+  fig.width = 10
+)
+```
+
+
+```{r packages}
+library(ngsReports)
+library(tidyverse)
+library(yaml)
+library(scales)
+library(pander)
+library(glue)
+library(cowplot)
+library(plotly)
+```
+
+```{r options}
+panderOptions("table.split.table", Inf)
+panderOptions("big.mark", ",")
+theme_set(theme_bw())
+```
+
+```{r config}
+config <- here::here("config/config.yml") %>%
+  read_yaml()
+```
+
+```{r samples}
+samples <- config$samples %>%
+  here::here() %>%
+  read_tsv() %>%
+  mutate(
+    R1 = config$hicpro$pair1_ext,
+    R2 = config$hicpro$pair2_ext,
+    suffix = config$suffix
+  ) %>%
+  pivot_longer(
+    cols = c("R1", "R2"),
+    names_to = "reads",
+    values_to = "tag"
+  ) %>% 
+  unite(
+    Filename, file, tag, suffix, sep = ""
+  ) %>% 
+  unite(
+    label, sample, reads, remove = FALSE
+  ) %>%
+  mutate_if(
+    function(x){length(unique(x)) < length(x)},
+    as.factor
+  )
+```
+
+```{r setFigureSizes}
+fh <- round(6 + nrow(samples) / 7, 0)
+```
+
+# Quality Assessment on Trimmed Data {.tabset}
+
+```{r bothFqc}
+rawFqc <- here::here("data/raw/FastQC") %>%
+  list.files(pattern = "fastqc.zip", recursive = TRUE, full.names = TRUE) %>%
+  FastqcDataList() %>%
+  .[fqName(.) %in% samples$Filename]
+trimFqc <- here::here("data/trimmed/FastQC") %>%
+  list.files(pattern = "fastqc.zip", recursive = TRUE, full.names = TRUE) %>%
+  FastqcDataList() %>%
+  .[fqName(.) %in% samples$Filename]
+```
+
+```{r maxAc}
+maxAc <- list(
+    getModule(trimFqc, "Adapter") %>% 
+      mutate(step = "trimmed"),
+    getModule(rawFqc, "Adapter") %>% 
+      mutate(step = "raw")
+  ) %>% 
+  bind_rows() %>% 
+  pivot_longer(-any_of(c("Filename", "Position", "step"))) %>% 
+  group_by(Filename, Position, step) %>% 
+  summarise(Total = sum(value), .groups = "drop") %>% 
+  group_by(step) %>% 
+  summarise(max = percent(max(Total), accuracy = 0.01)) 
+```
+
+
+In the workflow, trimming was performed using the tool `AdapterRemoval` with the settings:
+
+- Adapter Sequences:
+    + `r config$trimming$adapter1`
+    + `r config$trimming$adapter2`
+- Minimum length after trimming: `r config$trimming$minlength`
+- Minimum quality score after trimming: `r config$trimming$minqual`
+- Maximum allowable number of `N` bases to allow: `r config$trimming$maxns`
+
+After trimming, the library showing the highest level of possible adapter content identified `r dplyr::filter(maxAc, step == "trimmed")$max` of reads as containing possible adapter sequences.
+
+## Library Sizes
+
+```{r compareLibSizes}
+readTotals(rawFqc) %>%
+  rename(Raw = Total_Sequences) %>%
+  left_join(
+    readTotals(trimFqc) %>%
+      rename(Trimmed = Total_Sequences)
+  ) %>%
+  left_join(samples) %>% 
+  mutate(
+    Discarded = Raw - Trimmed,
+    Remaining = percent(Trimmed / Raw, accuracy = 0.01)
+  ) %>% 
+  dplyr::select(
+    Sample = sample, Library = reads, Raw, Trimmed, Discarded, Remaining
+  ) %>% 
+  pander(
+    justify = "llrrrr",
+    caption = "*Summary of results from trimming*"
+  )
+```
+
+
+## FastQC Summary
+
+```{r plotSummary, fig.height=fh, fig.cap = "*Comparison of FastQC summaries A) before and B), after trimming*"}
+a <- plotSummary(rawFqc, pattern = config$suffix) 
+b <- plotSummary(trimFqc, pattern = config$suffix) +
+  theme(
+    axis.text.y = element_blank(),
+    axis.ticks.y = element_blank(),
+    axis.title.y = element_blank()
+  )
+plot_grid(
+  a + theme(legend.position = "none"),
+  b + theme(legend.position = "none"),
+  labels = c("A", "B"),
+  nrow = 1,
+  rel_widths = c(1.6, 1)
+) +
+  draw_plot(
+    plot = get_legend(a), 
+    x = -0.4, 
+    y = -0.4
+  )
+```
+
+
+## Sequence Length Distribution
+
+```{r plotLengthDist, fig.cap="*Distribution of read lengths after trimming. R2 libraries tended to contain shorter reads*"}
+ggplotly(
+  plotSeqLengthDistn(trimFqc, plotType = "cdf") +
+    scale_x_discrete(
+      breaks = seq(35, 150, by = 5)
+    ) +
+    scale_colour_brewer(palette = "Paired") +
+    theme(axis.text.x = element_text(angle = 0))
+)
+```
+
+## GC Content
+
+```{r plotGC, fig.cap = "*GC content compared to the Theoretical Distribution for genomic data. Sample can be hidden by clicking on them in the legend.*"}
+plotGcContent(trimFqc, plotType = "line", gcType = "Genome", usePlotly = TRUE)
+```
+
+## Sequence Content
+
+```{r plotSeqContentResid, fig.cap = "*Position specific base content for each sample.*"}
+plotSeqContent(trimFqc, usePlotly = TRUE, dendrogram = TRUE, cluster = TRUE)
+```

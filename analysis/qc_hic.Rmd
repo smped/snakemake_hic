@@ -1,0 +1,456 @@
+---
+title: "QC On HiC-Pro Output"
+author: |
+    | Stephen Pederson
+    | Dame Roma Mitchell Cancer Research Laboratories
+    | Adelaide Medical School
+    | University of Adelaide
+date: "`r format(Sys.Date(), '%d %B, %Y')`"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  fig.height = 7,
+  fig.width = 10
+)
+```
+
+```{r packages}
+library(tidyverse)
+library(pander)
+library(yaml)
+library(scales)
+library(S4Vectors)
+library(glue)
+library(knitr)
+```
+
+
+```{r options}
+panderOptions("table.split.table", Inf)
+panderOptions("big.mark", ",")
+theme_set(theme_bw())
+```
+
+```{r config}
+config <- here::here("config/config.yml") %>%
+  read_yaml()
+```
+
+```{r samples}
+samples <- config$samples %>%
+  here::here() %>%
+  read_tsv() %>%
+  mutate(
+    R1 = config$hicpro$pair1_ext,
+    R2 = config$hicpro$pair2_ext,
+    suffix = config$suffix
+  ) %>%
+  pivot_longer(
+    cols = c("R1", "R2"),
+    names_to = "reads",
+    values_to = "tag"
+  ) %>% 
+  unite(
+    Filename, file, tag, suffix, sep = ""
+  ) %>% 
+  unite(
+    label, sample, reads, remove = FALSE
+  ) %>%
+  mutate_if(
+    function(x){length(unique(x)) < length(x)},
+    as.factor
+  )
+```
+
+## Restriction Fragment Sizes
+
+```{r plot_frag_sizes, fig.width = 8, fig.height = 5, fig.cap = "*Distribution of fragment sizes from the restriction digest.*"}
+here::here("output", config$ref$build, "fragment_length.counts") %>% 
+  read_delim(
+    col_names = c("count", "fragment_length"), 
+    delim = " ", 
+    col_types = "ii", 
+    trim_ws = TRUE
+  ) %>% 
+  with(
+    Rle(fragment_length, count)
+  ) %>% 
+  as.integer() %>% 
+  enframe(
+    name = NULL, value = "fragment_length"
+  ) %>% 
+  mutate(fragment_length = fragment_length / 1e3) %>%
+  ggplot(aes(fragment_length, stat(count))) +
+  geom_histogram(
+    bins = 100, fill = "grey70", colour = "black"
+  ) +
+  scale_x_log10(
+    labels = str_remove_all(comma(10^seq(-2, 4), accuracy = 0.01), "\\.0*$"), 
+    breaks = 10^seq(-2, 4)
+  ) +
+  scale_y_continuous(labels = comma, expand = expansion(c(0, 0.05))) +
+  labs(
+    x = "Genomic Fragment Size (kb)",
+    y = "Number of Restriction Fragments"
+  )
+```
+
+
+## Mapping Statistics {.tabset}
+
+### Individual Read Mapping
+
+```{r plot_mapping_unpaired, fig.cap = "*Summary of mapping rates by sample and read.*"}
+here::here("output", "hic_pro") %>% 
+  list.files(
+    pattern = "mmapstat",
+    recursive = TRUE,
+    full.names = TRUE
+  ) %>% 
+  sapply(
+    FUN = read_tsv, 
+    comment = "#", col_names = c("category", "total"),
+    simplify = FALSE
+  ) %>% 
+  lapply(list) %>% 
+  as_tibble() %>% 
+  pivot_longer(cols = everything(), names_to = "sample") %>% 
+  mutate(
+    sample = basename(sample) %>% str_remove_all("_R[12].mmapstat")
+  ) %>% 
+  unnest(value) %>% 
+  separate(category, into = c("category", "reads")) %>% 
+  pivot_wider(names_from = category, values_from = total) %>% 
+  mutate(
+    unmapped = total - mapped
+  ) %>% 
+  dplyr::select(
+    sample, reads, trimmed_mapping = local, full_read_mapping = global, unmapped
+  ) %>% 
+  pivot_longer(
+    cols = contains("map"), names_to = "category", values_to = "total"
+  ) %>% 
+  arrange(desc(total)) %>% 
+  group_by(sample, reads) %>% 
+  mutate(
+    percent = percent(total / sum(total), accuracy = 0.1),
+    cum_total = cumsum(total),
+    cum_percent = cum_total/sum(total)
+  ) %>% 
+  ungroup() %>% 
+  mutate(
+    category = str_replace_all(category, "_", " "),
+    category = str_to_title(category),
+    category = fct_inorder(category),
+    sample = as.factor(sample)
+  ) %>% 
+  ggplot(
+    aes(sample, total, fill = fct_rev(category))
+  ) +
+  geom_col(width = 0.6) +
+  geom_label(
+    aes(y = cum_total - 0.5*total, label = percent),
+    fill = rgb(0.8, 0.8, 0.8, 0.8),
+    size = 3.1
+  ) +
+  geom_text(
+    aes(as.integer(sample) - 0.5, y, label = percent),
+    data = . %>% 
+      dplyr::filter(category != "Unmapped") %>% 
+      group_by(sample, reads) %>% 
+      summarise(
+        y = max(cum_total),
+        percent = percent(max(cum_percent), accuracy = 0.1),
+        .groups = "drop"
+      ),
+    colour = hcl.colors(3, "cividis")[2],
+    size = 3.1,
+    nudge_y = -3e6,
+    inherit.aes = FALSE
+  ) +
+  facet_wrap(~reads) +
+  scale_x_discrete(expand = expansion(add = c(0.7, 0.65))) +
+  scale_y_continuous(labels = comma, expand = expansion(c(0, 0.05))) +
+  scale_fill_viridis_d(option = "cividis", direction = -1) +
+  labs(
+    x = "Sample",
+    y = "Total Read Counts",
+    fill = "Category"
+  )
+```
+
+
+### Paired Mapping
+
+```{r plot_mapping_paired, fig.cap = "*Summary of paired mapping rates by sample.*"}
+paired_df <- here::here("output", "hic_pro") %>% 
+  list.files(
+    pattern = "mpairstat",
+    recursive = TRUE,
+    full.names = TRUE
+  ) %>% 
+  sapply(
+    FUN = read_tsv, 
+    comment = "#", col_names = c("category", "total", "percent"), 
+    simplify = FALSE
+  ) %>% 
+  lapply(list) %>% 
+  as_tibble() %>% 
+  pivot_longer(cols = everything(), names_to = "sample") %>% 
+  mutate(
+    sample = basename(sample) %>% str_remove_all(".mpairstat")
+  ) %>% 
+  unnest(value) %>% 
+  dplyr::filter(
+    percent != 100, percent > 0,
+    category != "Reported_pairs"
+  ) %>% 
+  arrange(desc(percent)) %>% 
+  group_by(sample) %>% 
+  mutate(
+    cum_total = cumsum(total),
+    cum_percent = cumsum(percent)
+  ) %>% 
+  ungroup() %>% 
+  mutate(
+    category = str_replace_all(category, "_", " "),
+    category = str_to_title(category),
+    category = fct_inorder(category),
+    sample = as.factor(sample),
+    percent = percent(percent/100, accuracy = 0.1)
+  ) 
+paired_df %>% 
+  ggplot(
+    aes(sample, total, fill = fct_rev(category))
+  ) +
+  geom_col(width = 0.7) +
+  geom_label(
+    aes(sample, y = cum_total - 0.5*total, label = percent),
+    fill = rgb(0.8, 0.8, 0.8, 0.8),
+    size = 3.2
+  ) +
+  geom_text(
+    aes(as.integer(sample) - 0.45, cum_total, label = cum_percent),
+    data = paired_df %>% 
+      dplyr::filter(category != "Unmapped Pairs") %>% 
+      group_by(sample) %>% 
+      summarise(
+        cum_percent = percent(max(cum_percent)/100, accuracy = 0.1), 
+        cum_total = max(cum_total)
+      ),
+    colour = hcl.colors(4, "cividis")[3],
+    size = 3.2,
+    nudge_y = -3e6,
+    inherit.aes = FALSE
+  ) +
+  scale_y_continuous(labels = comma, expand = expansion(c(0, 0.05))) +
+  scale_fill_viridis_d(option = "cividis", direction = -1) +
+  labs(
+    x = "Sample",
+    y = "Total Read Pairs",
+    fill = "Category"
+  )
+```
+
+
+### Mapping To Restriction Fragments
+
+```{r plot_mapping_to_rf, fig.cap = "*Valid mappings to restriction fragments by read orientation.*"}
+bl <- hcl.colors(5, "Blues")[1:4]
+rd <- hcl.colors(4, "YlOrRd")
+here::here("output", "hic_pro") %>% 
+  list.files(
+    pattern = "mRSstat",
+    recursive = TRUE,
+    full.names = TRUE
+  ) %>% 
+  sapply(
+    FUN = read_tsv, 
+    comment = "#", col_names = c("category", "total"),
+    simplify = FALSE
+  ) %>% 
+  lapply(list) %>% 
+  as_tibble() %>% 
+  pivot_longer(cols = everything(), names_to = "sample") %>% 
+  mutate(
+    sample = basename(sample) %>% str_remove_all(".mRSstat")
+  ) %>% 
+  unnest(value) %>% 
+  dplyr::filter(
+    total > 0,
+    category != "Valid_interaction_pairs"
+  ) %>% 
+  arrange(desc(total)) %>% 
+  group_by(sample) %>% 
+  mutate(
+    percent = percent(total / sum(total), accuracy = 0.1),
+    cum_total = cumsum(total)
+  ) %>% 
+  ungroup() %>% 
+  mutate(
+    category = str_replace_all(category, "_", " "),
+    category = str_to_title(category),
+    category = str_replace_all(category, "[FfRr]$", toupper),
+    category = fct_inorder(category),
+    sample = as.factor(sample),
+    valid = str_detect(category, "Valid")
+  ) %>% 
+  ggplot(
+    aes(sample, total, fill = fct_rev(category))
+  ) +
+  geom_col(width = 0.7) +
+  geom_label(
+    aes(sample, y = cum_total - 0.5*total, label = percent),
+    data = . %>% 
+      dplyr::filter(percent != "0.0%"),
+    fill = rgb(0.8, 0.8, 0.8, 0.8),
+    size = 3
+  ) +
+  geom_text(
+    aes(as.integer(sample) - 0.45, total, label = percent, colour = valid),
+    data = . %>% 
+      group_by(sample, valid) %>%
+      summarise(
+        total = max(cum_total),
+        percent = percent %>% 
+          str_remove_all("%") %>% 
+          as.numeric() %>% 
+          sum() %>% 
+          paste0("%"),
+        .groups = "drop"
+      ),
+    inherit.aes = FALSE,
+    size = 3.2,
+    nudge_y = -3e6,
+    show.legend = FALSE
+  ) +
+  scale_y_continuous(labels = comma, expand = expansion(c(0, 0.05))) +
+  scale_fill_manual(values = c(rd, rev(bl))) +
+  scale_colour_manual(
+    values = c(rd[3], bl[3])
+  ) +
+  labs(
+    x = "Sample",
+    y = "Total Read Pairs",
+    fill = "Category"
+  )
+```
+
+### Contact Ranges
+
+```{r plot_contact_ranges, fig.cap = "*Plot showing contact ranges. Interactions corresponding to PCR duplicates were excluded and are shown in yellow. Cis Interactions are considered the most reliable and combined totals are shown as percentages.*"}
+here::here("output", "hic_pro") %>% 
+  list.files(
+    pattern = "mergestat",
+    recursive = TRUE,
+    full.names = TRUE
+  ) %>% 
+  sapply(
+    FUN = read_tsv, 
+    comment = "#", col_names = c("category", "total"),
+    simplify = FALSE
+  ) %>% 
+  lapply(list) %>% 
+  as_tibble() %>% 
+  pivot_longer(cols = everything(), names_to = "sample") %>% 
+  mutate(
+    sample = basename(sample) %>% str_remove_all("_allValidPairs.mergestat")
+  ) %>% 
+  unnest(value) %>% 
+  pivot_wider(names_from = "category", values_from = "total") %>% 
+  mutate(duplicates = valid_interaction - valid_interaction_rmdup) %>% 
+  dplyr::rename(all_pairs = valid_interaction) %>% 
+  pivot_longer(
+    cols = -all_of(c("sample", "all_pairs")),
+    names_to = "category",
+    values_to = "total"
+  ) %>% 
+  arrange(desc(total)) %>% 
+  mutate(
+    percent = percent(total/all_pairs, accuracy = 0.1),
+    category = str_replace_all(category, "_", " "),
+    category = str_remove_all(category, " rmdup"),
+    category = str_to_title(category),
+    category = str_replace_all(category, "Interaction", "Interactions"),
+    category = str_replace_all(category, "Shortrange", "Short Range (<20kb)"),
+    category = str_replace_all(category, "Longrange", "Long Range (>20kb)"),
+    category = str_replace_all(category, "Duplicates", "Duplicates (Removed)"),
+    category = fct_inorder(category),
+    valid = str_detect(category, "Valid"),
+    cis = str_detect(category, "Cis"),
+    sample = as.factor(sample)
+  ) %>% 
+  ggplot(
+    aes(sample, total, fill = fct_rev(category))
+  ) +
+  geom_col(
+    data = . %>% 
+      dplyr::filter(
+        !valid, category != "Cis Interactions"
+      ) %>% 
+      droplevels(),
+    width = 0.7
+  ) +
+  geom_label(
+    aes(sample, y = cum_total - 0.5*total, label = percent),
+    data = . %>% 
+      dplyr::filter(
+        !category %in% c("Cis Interactions", "Valid Interactions")
+      ) %>% 
+      group_by(sample) %>% 
+      mutate(cum_total = cumsum(total)),
+    fill = rgb(0.8, 0.8, 0.8, 0.8),
+    size = 3.2
+  ) +
+  geom_text(
+    aes(x = as.integer(sample) - 0.45, total, label = percent),
+    data = . %>% 
+      dplyr::filter(valid),
+    size = 3.2,
+    colour = hcl.colors(4, "cividis")[3],
+    nudge_y = -3e6,
+    inherit.aes = FALSE
+  ) +
+  geom_text(
+    aes(x = as.integer(sample) - 0.45, total, label = percent),
+    data = . %>% 
+      dplyr::filter(category == "Cis Interactions"),
+    size = 3.2,
+    colour = hcl.colors(4, "cividis")[2],
+    nudge_y = -3e6,
+    inherit.aes = FALSE
+  ) +
+  scale_y_continuous(labels = comma, expand = expansion(c(0, 0.05))) +
+  scale_fill_viridis_d(option = "cividis", direction = -1) +
+  labs(
+    x = "Sample",
+    y = "Total Read Pairs",
+    fill = "Category"
+  )
+```
+
+## HiC Fragment Sizes {.tabset}
+
+```{r png_fragment_sizes, results='asis'}
+for (s in levels(samples$sample)) {
+  cat("###", s, "\n")
+  cat("\n")
+  png_path <- file.path("assets", glue("plotHiCFragmentSize_{s}.png"))
+  cat(
+    glue(
+      "![*Fragment sizes for {s}*]({png_path})"
+    ),
+    "\n\n"
+  )
+}
+```
+
+

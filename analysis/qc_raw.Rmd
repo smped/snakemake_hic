@@ -1,0 +1,179 @@
+---
+title: "QC On Raw Data"
+author: |
+    | Stephen Pederson
+    | Dame Roma Mitchell Cancer Research Laboratories
+    | Adelaide Medical School
+    | University of Adelaide
+date: "`r format(Sys.Date(), '%d %B, %Y')`"
+output: workflowr::wflow_html
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  fig.height = 7,
+  fig.width = 10
+)
+```
+
+```{r packages}
+library(ngsReports)
+library(tidyverse)
+library(yaml)
+library(scales)
+library(pander)
+library(glue)
+library(plotly)
+```
+
+```{r options}
+panderOptions("table.split.table", Inf)
+panderOptions("big.mark", ",")
+theme_set(theme_bw())
+```
+
+```{r config}
+config <- here::here("config/config.yml") %>%
+  read_yaml()
+```
+
+```{r samples}
+samples <- config$samples %>%
+  here::here() %>%
+  read_tsv() %>%
+  mutate(
+    R1 = config$hicpro$pair1_ext,
+    R2 = config$hicpro$pair2_ext,
+    suffix = config$suffix
+  ) %>%
+  pivot_longer(
+    cols = c("R1", "R2"),
+    names_to = "reads",
+    values_to = "tag"
+  ) %>% 
+  unite(
+    Filename, file, tag, suffix, sep = ""
+  ) %>% 
+  unite(
+    label, sample, reads, remove = FALSE
+  ) %>%
+  mutate_if(
+    function(x){length(unique(x)) < length(x)},
+    as.factor
+  )
+```
+
+```{r setFigureSizes}
+fh <- round(6 + nrow(samples) / 7, 0)
+```
+
+# Quality Assessment on Raw Data {.tabset}
+
+```{r rawFqc}
+rawFqc <- here::here("data/raw/FastQC") %>%
+  list.files(pattern = "fastqc.zip", full.names = TRUE, recursive = TRUE) %>%
+  FastqcDataList() %>%
+  .[fqName(.) %in% samples$Filename]
+```
+
+A total of `r length(rawFqc)` libraries were contained in this dataset, with read totals ranging between `r pander(comma(range(readTotals(rawFqc)$Total_Sequences)))` reads.
+
+Across all libraries, reads were between `r pander(range(as.numeric(getModule(rawFqc, "Sequence_Length")$Length)))` bases.
+This does indicate some read trimming had been performed prior to that undertaken here.
+
+
+## Library Sizes
+
+```{r plotReadTotals, fig.height=fh, fig.cap = "*Library Sizes for all supplied fastq files. Any samples run as multiple libraries are  shown as the supplied multiple libraries and have not been merged.*"}
+plotReadTotals(rawFqc, pattern = config$suffix, usePlotly = TRUE)
+```
+
+
+## FastQC Summary
+
+```{r plotSummary, fig.height=fh, fig.cap = "*Overall summary of FastQC reports*"}
+plotSummary(rawFqc)
+```
+
+## Sequence Quality
+
+```{r plotBaseQuals, fig.height=fh*1.5, fig.cap = "*Sequencing quality scores at each base position for each library*"}
+plotBaseQuals(
+  rawFqc,
+  pattern = config$suffix, 
+  plotType = "boxplot",
+  usePlotly = FALSE,
+  dendrogram = TRUE,
+  cluster = TRUE
+  ) +
+  scale_x_discrete(
+    breaks = seq(0, 150, by = 10)
+  ) +
+  theme(
+    axis.text.x = element_text(angle = 0, hjust = 0.5)
+  )
+```
+
+
+## GC Content
+
+```{r plotGC, fig.cap="*GC content for all libraries compared to the theoretical distribution for genomic DNA*"}
+plotGcContent(
+  rawFqc,
+  plotType = "line", 
+  usePlotly = TRUE, 
+  gcType = "Genome"
+  ) 
+```
+
+
+## Sequence Content
+
+```{r plotSeqContentResid, fig.cap = "*Base and Position specific sequence content for each sample. The lack of `A` nucleotides at the final position is indicative of prior trimming.*"}
+plotSeqContent(rawFqc, usePlotly = TRUE, cluster = TRUE, dendrogram = TRUE)
+```
+
+## AdapterContent
+
+```{r plotAdapterContent, fig.height=fh, fig.cap="*Total Adapter Content for each sample shown by starting position in the read.*"}
+plotAdapterContent(
+  x = rawFqc, 
+  pattern = config$suffix, 
+  usePlotly = TRUE,
+  dendrogram = TRUE,
+  cluster = TRUE
+  )
+```
+
+## Overrepresented Sequences
+
+```{r os}
+os <- suppressMessages(getModule(rawFqc, "Over"))
+os_fh <- min(20, 6 + nrow(os) / 20)
+```
+
+`r ifelse(nrow(os) > 0, "", "No over-represented sequences were identified")`
+
+```{r plotOverRep, fig.height=os_fh, fig.cap = "*Summary of over-represented sequences across all libraries*", eval = nrow(os) > 0, echo = nrow(os) > 0}
+if (nrow(os)){
+  if (length(unique(os$Filename)) > 1){
+    suppressMessages(
+      plotOverrep(
+        x = rawFqc,
+        pattern = config$suffix, 
+        usePlotly = TRUE,
+        dendrogram = TRUE,
+        cluster = TRUE
+      )
+    )
+  }
+}
+```
+
+

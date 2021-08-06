@@ -1,0 +1,75 @@
+---
+title: "Introduction"
+author: |
+    | Stephen Pederson
+    | Dame Roma Mitchell Cancer Research Laboratories
+    | Adelaide Medical School
+    | University of Adelaide
+date: "`r format(Sys.Date(), '%d %B, %Y')`"
+site: workflowr::wflow_site
+output:
+  workflowr::wflow_html:
+    toc: true
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, echo=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center"
+)
+```
+
+```{r packages}
+library(tidyverse)
+library(DiagrammeR)
+library(pander)
+library(yaml)
+```
+
+```{r load_funs}
+source("https://raw.githubusercontent.com/steveped/spBioUtils/main/R/helpers.R")
+source("https://raw.githubusercontent.com/steveped/spBioUtils/main/R/rm_dot_node.R")
+source("https://raw.githubusercontent.com/steveped/spBioUtils/main/R/add_input_node.R")
+source("https://raw.githubusercontent.com/steveped/spBioUtils/main/R/change_node_colour.R")
+```
+
+
+```{r config}
+config <- here::here("config/config.yml") %>%
+  read_yaml()
+samples <- config$samples %>% 
+  here::here() %>% 
+  read_tsv()
+```
+
+
+## Description
+
+This is the data setup and preparations for subsequent integration with ChIP-Seq data.
+No identification of TADs is included as this workflow simply aims to identify *significant interactions* (above background) using combinations of bin sizes.
+
+- Data was aligned to `r config$ref$build` obtained from Gencode release `r config$ref$gencode`.
+- HiC Interactions were identified using [Hic-Pro v3.0.0](https://github.com/nservant/HiC-Pro/releases/tag/v3.0.0) and bins of `r pander(paste0(as.integer(str_split(config$hicpro$bin_size, pattern = " ")[[1]])/1e3, "kb"))`
+- Bin pairs with numbers of interactions significantly above background were identified using [MaxHiC](https://github.com/Rassa-Gvm/MaxHiC)
+
+## Workflow
+
+```{r plot_workflow, fig.height = 8, fig.width = 10, fig.cap = "*Summary of processing workflow. The primary data pipeline is shown in red, with QC/reporting steps shown in orange. Preparatory steps are shown in blue whilst collation of final output is in green.*"}
+here::here("rules/rulegraph.dot") %>%
+  readLines() %>%
+  rm_dot_node(node = "\"all\"") %>%
+  add_input_node(node = "RAW DATA", col = "red", ignore = "(get|build|make|install)") %>%
+  change_node_colour("(hicpro|contact|adapter|merge|run)_", "red") %>% 
+  change_node_colour("collect|compress|zip|define", "forestgreen") %>% 
+  change_node_colour("(reference|index|chrom_sizes|install_maxhic|find|config)", "blue") %>% 
+  change_node_colour("qc|stats|lengths|rulegraph|site|pics|convert", "orange") %>% 
+  str_replace_all("_", "\n") %>% 
+  str_replace_all("snakemake\ndag", "snakemake_dag") %>%
+  str_replace_all("fontsize=[0-9]+", "fontsize=16") %>%
+  grViz()
+```
+
