@@ -3,14 +3,12 @@ output_dir: ../docs
 navbar:
   title: "HiC Data Preparation"
   left:
-  - text: QC
-    menu:
-      - text: Raw Data
-        href: qc_raw.html
-      - text: Trimmed Data
-        href: qc_trimmed.html
-      - text: HiC Data
-        href: qc_hic.html
+  - text: Raw Data
+    href: qc_raw.html
+  - text: Trimmed Data
+    href: qc_trimmed.html
+  - text: HiC Data
+    href: qc_hic.html
   - text: MaxHiC Output
     href: define_interactions.html
 output:

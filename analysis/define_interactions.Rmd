@@ -65,7 +65,7 @@ bin_sizes <- config$hicpro$bin_size %>%
   as.integer()
 ```
 
-```{r generate_output, results='asis'}
+```{r generate_cis_output, results='asis'}
 for (sz in bin_sizes) {
 
   ## Section Headers
@@ -187,12 +187,12 @@ for (sz in bin_sizes) {
     width = 8, height = 5
   )
   cat(
-    glue("![Interactions by chromosome](assets/interaction_summary_{sz}.png)"),
+    glue("![*Interactions by chromosome using {sz/1e3}kb bins*](assets/interaction_summary_{sz}.png)"),
     "\n"
   )
   cat("\n\n")
 
-  cat("\n### Interaction Distances\n\n")
+  cat("\n### Interactions By Distance\n\n")
   a <- mcols(gi) %>% 
     as.data.frame %>% 
     ggplot(aes(distance/1e3, counts)) + 
@@ -240,7 +240,125 @@ for (sz in bin_sizes) {
     plot_grid(a, b, rel_widths = c(0.9, 0.1), align = "h"),
     rel_heights = c(0.1, 0.9), nrow = 2, align = "v", axis = "r"
   )
+  ggsave(
+    here::here("docs/assets", glue("interaction_by_distance_{sz}.png")),
+    width = 8, height = 5
+  )
+  cat(
+    glue("![*Interactions by distance using {sz/1e3}kb bins*](assets/interaction_by_distance_{sz}.png)"),
+    "\n"
+  )
 
 }
 ```
 
+# Trans Interactions {.tabset}
+
+
+```{r generate_trans_output, results='asis'}
+for (sz in bin_sizes) {
+
+  ## Section Headers
+  cat(glue("## {sz/1e3}kb Bins"), "{.tabset}\n\n")
+  ## Key info
+  fl <- here::here("output", "MaxHiC", sz, "trans_interactions.txt.gz")
+  n <- system2("zcat", glue("{fl} | wc -l"), stdout = TRUE) %>% 
+    as.integer()
+  gi <- glue("output/MaxHiC/gi_{sz}_trans.rds") %>% 
+    here::here() %>% 
+    read_rds()
+  cat(
+    glue(
+      "- {comma(length(gi))} bin-pair interactions were retained.",
+      "This represented {percent(length(gi)/n, accuracy = 0.01)}",
+      "of all interactions detected in the dataset.",
+      .sep = " "
+    ),
+    "\n"
+  )
+  ## Describe the counts
+  if (length(gi) > 0) {
+    
+    cat(
+      glue(
+        "- The observed interactions between retained bin-pairs ranged between",
+        glue_collapse(range(gi$counts), last = ' & '),
+        .sep = " "
+      ),
+      "\n"
+    )
+    
+  }
+
+  ## Some plots
+  cat("\n### Interaction Summary\n\n")
+  a <- gi %>%
+    anchors() %>%
+    GRangesList() %>% 
+    unlist() %>% 
+    seqnames() %>%
+    table() %>%
+    enframe(
+      name = "chr",
+      value = "count"
+    ) %>%
+    mutate(
+      chr = str_remove_all(chr, "chr"),
+      chr = fct_inorder(chr),
+      count = as.integer(count)
+    ) %>%
+    ggplot(aes(chr, count)) +
+    geom_col() +
+    labs(
+      x = "Chromosome",
+      y = glue("Total Significant Trans Interactions ({sz/1e3}kb bins)")
+    ) +
+    scale_y_continuous(expand = expansion(c(0, 0.05)), labels = comma)
+  b <- gi %>%
+    anchors() %>%
+    GRangesList() %>% 
+    unlist() %>% 
+    seqnames() %>%
+    table() %>%
+    enframe(
+      name = "seqnames",
+      value = "count"
+    ) %>%
+    mutate(
+      seqnames = factor(seqnames, levels = seqlevels(gi)),
+      count = as.integer(count)
+    ) %>% 
+    left_join(
+      tibble(
+        seqnames = seqlevels(gi),
+        seqlengths = seqlengths(gi)
+      )
+    ) %>% 
+    mutate(
+      count_per_mb = count / (seqlengths / 1e6),
+      chr = str_remove_all(seqnames, "chr"),
+      chr = fct_inorder(chr)
+    ) %>%
+    ggplot(
+      aes(chr, count_per_mb)
+    ) +
+    geom_col() +
+    labs(
+      x = "Chromosome",
+      y = glue("Significant Trans Interactions per Mb ({sz/1e3}kb bins)")
+    ) +
+    scale_y_continuous(expand = expansion(c(0, 0.05)))
+  plot_grid(a, b, labels = c("A", "B"))
+  ggsave(
+    here::here("docs/assets", glue("interaction_summary_{sz}_trans.png")),
+    width = 8, height = 5
+  )
+  cat(
+    glue("![*Trans interactions by chromosome using {sz/1e3}kb bins*](assets/interaction_summary_{sz}_trans.png)"),
+    "\n"
+  )
+  cat("\n\n")
+
+
+}
+```

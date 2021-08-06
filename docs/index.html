@@ -335,23 +335,14 @@ div.tocify {
     </div>
     <div id="navbar" class="navbar-collapse collapse">
       <ul class="nav navbar-nav">
-        <li class="dropdown">
-  <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" aria-expanded="false">
-    QC
-     
-    <span class="caret"></span>
-  </a>
-  <ul class="dropdown-menu" role="menu">
-    <li>
-      <a href="qc_raw.html">Raw Data</a>
-    </li>
-    <li>
-      <a href="qc_trimmed.html">Trimmed Data</a>
-    </li>
-    <li>
-      <a href="qc_hic.html">HiC Data</a>
-    </li>
-  </ul>
+        <li>
+  <a href="qc_raw.html">Raw Data</a>
+</li>
+<li>
+  <a href="qc_trimmed.html">Trimmed Data</a>
+</li>
+<li>
+  <a href="qc_hic.html">HiC Data</a>
 </li>
 <li>
   <a href="define_interactions.html">MaxHiC Output</a>
@@ -388,7 +379,7 @@ University of Adelaide</div></h4>
 
 <p>
 <button type="button" class="btn btn-default btn-workflowr btn-workflowr-report" data-toggle="collapse" data-target="#workflowr-report">
-<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span>
+<span class="glyphicon glyphicon-list" aria-hidden="true"></span> workflowr <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span>
 </button>
 </p>
 <div id="workflowr-report" class="collapse">
@@ -397,7 +388,7 @@ University of Adelaide</div></h4>
 <a data-toggle="tab" href="#summary">Summary</a>
 </li>
 <li>
-<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> </a>
+<a data-toggle="tab" href="#checks"> Checks <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> </a>
 </li>
 <li>
 <a data-toggle="tab" href="#versions">Past versions</a>
@@ -409,7 +400,7 @@ University of Adelaide</div></h4>
 <strong>Last updated:</strong> 2021-08-06
 </p>
 <p>
-<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 7 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 0
+<strong>Checks:</strong> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> 6 <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> 1
 </p>
 <p>
 <strong>Knit directory:</strong> <code>snakemake_hic/</code> <span class="glyphicon glyphicon-question-sign" aria-hidden="true" title="This is the local directory in which the code in this file was executed."> </span>
@@ -425,12 +416,12 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguptodate"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>R Markdown file:</strong> up-to-date </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRMarkdownfilestronguncommittedchanges"> <span class="glyphicon glyphicon-exclamation-sign text-danger" aria-hidden="true"></span> <strong>R Markdown file:</strong> uncommitted changes </a>
 </p>
 </div>
-<div id="strongRMarkdownfilestronguptodate" class="panel-collapse collapse">
+<div id="strongRMarkdownfilestronguncommittedchanges" class="panel-collapse collapse">
 <div class="panel-body">
-<p>Great! Since the R Markdown file has been committed to the Git repository, you know the exact version of the code that produced these results.</p>
+<p>The R Markdown file has staged changes. To know which version of the R Markdown file created these results, you’ll want to first commit it to the Git repo. If you’re still working on the analysis, you can ignore this warning. When you’re finished, you can run <code>wflow_publish</code> to commit the R Markdown file and build the HTML.</p>
 </div>
 </div>
 </div>
@@ -497,16 +488,16 @@ This reproducible <a href="http://rmarkdown.rstudio.com">R Markdown</a> analysis
 <div class="panel panel-default">
 <div class="panel-heading">
 <p class="panel-title">
-<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictree65b778ee059397c16677451ad59e73e9111600fbtargetblank65b778ea"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/steveped/snakemake_hic/tree/65b778ee059397c16677451ad59e73e9111600fb" target="_blank">65b778e</a> </a>
+<a data-toggle="collapse" data-parent="#workflowr-checks" href="#strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictreee7ed0be2b0a5b6a3f6a06d63d7d11ffc58bebbc4targetblanke7ed0bea"> <span class="glyphicon glyphicon-ok text-success" aria-hidden="true"></span> <strong>Repository version:</strong> <a href="https://github.com/steveped/snakemake_hic/tree/e7ed0be2b0a5b6a3f6a06d63d7d11ffc58bebbc4" target="_blank">e7ed0be</a> </a>
 </p>
 </div>
-<div id="strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictree65b778ee059397c16677451ad59e73e9111600fbtargetblank65b778ea" class="panel-collapse collapse">
+<div id="strongRepositoryversionstrongahrefhttpsgithubcomstevepedsnakemakehictreee7ed0be2b0a5b6a3f6a06d63d7d11ffc58bebbc4targetblanke7ed0bea" class="panel-collapse collapse">
 <div class="panel-body">
 <p>
 Great! You are using Git for version control. Tracking code development and connecting the code version to the results is critical for reproducibility.
 </p>
 <p>
-The results in this page were generated with repository version <a href="https://github.com/steveped/snakemake_hic/tree/65b778ee059397c16677451ad59e73e9111600fb" target="_blank">65b778e</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
+The results in this page were generated with repository version <a href="https://github.com/steveped/snakemake_hic/tree/e7ed0be2b0a5b6a3f6a06d63d7d11ffc58bebbc4" target="_blank">e7ed0be</a>. See the <em>Past versions</em> tab to see a history of the changes made to the R Markdown and HTML files.
 </p>
 <p>
 Note that you need to be careful to ensure that all relevant files for the analysis have been committed to Git prior to generating the results (you can use <code>wflow_publish</code> or <code>wflow_git_commit</code>). workflowr only checks the R Markdown file, but you know if there are other scripts or data files that it depends on. Below is the status of the Git repository when the results were generated:
@@ -537,7 +528,9 @@ Unstaged changes:
     Modified:   rules/workflowr.smk
 
 Staged changes:
+    Modified:   analysis/_site.yml
     Modified:   analysis/define_interactions.Rmd
+    Modified:   analysis/index.Rmd
 
 </code></pre>
 <p>
@@ -576,6 +569,23 @@ Message
 </tr>
 </thead>
 <tbody>
+<tr>
+<td>
+html
+</td>
+<td>
+<a href="https://rawcdn.githack.com/steveped/snakemake_hic/e7ed0be2b0a5b6a3f6a06d63d7d11ffc58bebbc4/docs/index.html" target="_blank">e7ed0be</a>
+</td>
+<td>
+Steve Pederson
+</td>
+<td>
+2021-08-06
+</td>
+<td>
+Updated all
+</td>
+</tr>
 <tr>
 <td>
 html
@@ -681,15 +691,15 @@ samples &lt;- config$samples %&gt;%
   add_input_node(node = &quot;RAW DATA&quot;, col = &quot;red&quot;, ignore = &quot;(get|build|make|install)&quot;) %&gt;%
   change_node_colour(&quot;(hicpro|contact|adapter|merge|run)_&quot;, &quot;red&quot;) %&gt;% 
   change_node_colour(&quot;collect|compress|zip|define&quot;, &quot;forestgreen&quot;) %&gt;% 
-  change_node_colour(&quot;(reference|index|chrom_sizes|install_maxhic|find|config)&quot;, &quot;blue&quot;) %&gt;% 
-  change_node_colour(&quot;qc|stats|lengths|rulegraph|site|pics|convert&quot;, &quot;orange&quot;) %&gt;% 
+  change_node_colour(&quot;(reference|index|chrom_sizes|install_maxhic|find|config|initialise)&quot;, &quot;blue&quot;) %&gt;% 
+  change_node_colour(&quot;qc|stats|lengths|rulegraph|site|pics|convert|extract|summarise&quot;, &quot;orange&quot;) %&gt;% 
   str_replace_all(&quot;_&quot;, &quot;\n&quot;) %&gt;% 
   str_replace_all(&quot;snakemake\ndag&quot;, &quot;snakemake_dag&quot;) %&gt;%
   str_replace_all(&quot;fontsize=[0-9]+&quot;, &quot;fontsize=16&quot;) %&gt;%
   grViz()</code></pre>
 <div class="figure" style="text-align: center">
 <div id="htmlwidget-495eed38db8940ef6515" style="width:960px;height:768px;" class="grViz html-widget"></div>
-<script type="application/json" data-for="htmlwidget-495eed38db8940ef6515">{"x":{"diagram":"digraph snakemake_dag {\n    graph[bgcolor=white, margin=0];\n    node[shape=box, style=rounded, fontname=sans,                 fontsize=16, penwidth=2];\n    edge[penwidth=2, color=grey];\n\t1[label = \"zip\nfragment\nbedfile\", color = \"#228B22\", style=\"rounded\"];\n\t2[label = \"find\nrestriction\nfragments\", color = \"#0000FF\", style=\"rounded\"];\n\t3[label = \"unzip\nreference\", color = \"#0000FF\", style=\"rounded\"];\n\t4[label = \"get\nreference\", color = \"#0000FF\", style=\"rounded\"];\n\t5[label = \"compress\nmerged\noutput\", color = \"#228B22\", style=\"rounded\"];\n\t6[label = \"merge\ninteraction\nmatrices\", color = \"#FF0000\", style=\"rounded\"];\n\t7[label = \"build\ncontact\nmaps\", color = \"#FF0000\", style=\"rounded\"];\n\t8[label = \"make\nhicpro\nconfig\", color = \"#0000FF\", style=\"rounded\"];\n\t9[label = \"bowtie2\nindex\", color = \"#0000FF\", style=\"rounded\"];\n\t10[label = \"get\nchrom\nsizes\", color = \"#0000FF\", style=\"rounded\"];\n\t11[label = \"hicpro\nmerge\", color = \"#FF0000\", style=\"rounded\"];\n\t12[label = \"hicpro\nproc\", color = \"#FF0000\", style=\"rounded\"];\n\t13[label = \"hicpro\nmapping\", color = \"#FF0000\", style=\"rounded\"];\n\t14[label = \"adapter\nremoval\", color = \"#FF0000\", style=\"rounded\"];\n\t15[label = \"collect\noutput\nvalid\npairs\", color = \"#228B22\", style=\"rounded\"];\n\t16[label = \"collect\noutput\nmatrices\", color = \"#228B22\", style=\"rounded\"];\n\t17[label = \"collect\nstats\", color = \"#FFA500\", style=\"rounded\"];\n\t18[label = \"hicpro\nqc\", color = \"#FFA500\", style=\"rounded\"];\n\t19[label = \"run\nmaxhic\", color = \"#FF0000\", style=\"rounded\"];\n\t20[label = \"install\nmaxhic\", color = \"#0000FF\", style=\"rounded\"];\n\t21[label = \"extract\nsignificant\ninteractions\", color = \"0.02 0.6 0.85\", style=\"rounded\"];\n\t22[label = \"initialise\nr\nproject\", color = \"0.19 0.6 0.85\", style=\"rounded\"];\n\t23[label = \"build\nsite\nindex\", color = \"#FFA500\", style=\"rounded\"];\n\t24[label = \"build\nraw\nqc\nreport\", color = \"#FFA500\", style=\"rounded\"];\n\t25[label = \"raw\nfastqc\", color = \"#FFA500\", style=\"rounded\"];\n\t26[label = \"build\ntrimmed\nqc\nreport\", color = \"#FFA500\", style=\"rounded\"];\n\t27[label = \"trim\nfastqc\", color = \"#FFA500\", style=\"rounded\"];\n\t28[label = \"build\nhic\nqc\nreport\", color = \"#FFA500\", style=\"rounded\"];\n\t29[label = \"get\nfragment\nlengths\", color = \"#FFA500\", style=\"rounded\"];\n\t30[label = \"convert\nfragment\nsize\nplot\", color = \"#FFA500\", style=\"rounded\"];\n\t31[label = \"summarise\nsignificant\ninteractions\", color = \"0.50 0.6 0.85\", style=\"rounded\"];\n\t32[label = \"RAW DATA\", color = \"#FF0000\", style=\"rectangle\"];\n\t2 -> 1\n\t3 -> 2\n\t4 -> 3\n\t6 -> 5\n\t7 -> 6\n\t11 -> 7\n\t8 -> 7\n\t10 -> 8\n\t9 -> 8\n\t2 -> 8\n\t3 -> 9\n\t12 -> 11\n\t8 -> 11\n\t13 -> 12\n\t8 -> 12\n\t9 -> 13\n\t8 -> 13\n\t14 -> 13\n\t11 -> 15\n\t7 -> 16\n\t11 -> 17\n\t11 -> 18\n\t13 -> 18\n\t8 -> 18\n\t20 -> 19\n\t6 -> 19\n\t19 -> 21\n\t22 -> 23\n\t31 -> 23\n\t26 -> 23\n\t24 -> 23\n\t28 -> 23\n\t25 -> 24\n\t22 -> 24\n\t27 -> 26\n\t22 -> 26\n\t14 -> 27\n\t30 -> 28\n\t17 -> 28\n\t22 -> 28\n\t29 -> 28\n\t2 -> 29\n\t18 -> 30\n\t21 -> 31\n\t22 -> 31\n\t32 -> 14\n\t32 -> 22\n\t32 -> 25\n}            ","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
+<script type="application/json" data-for="htmlwidget-495eed38db8940ef6515">{"x":{"diagram":"digraph snakemake_dag {\n    graph[bgcolor=white, margin=0];\n    node[shape=box, style=rounded, fontname=sans,                 fontsize=16, penwidth=2];\n    edge[penwidth=2, color=grey];\n\t1[label = \"zip\nfragment\nbedfile\", color = \"#228B22\", style=\"rounded\"];\n\t2[label = \"find\nrestriction\nfragments\", color = \"#0000FF\", style=\"rounded\"];\n\t3[label = \"unzip\nreference\", color = \"#0000FF\", style=\"rounded\"];\n\t4[label = \"get\nreference\", color = \"#0000FF\", style=\"rounded\"];\n\t5[label = \"compress\nmerged\noutput\", color = \"#228B22\", style=\"rounded\"];\n\t6[label = \"merge\ninteraction\nmatrices\", color = \"#FF0000\", style=\"rounded\"];\n\t7[label = \"build\ncontact\nmaps\", color = \"#FF0000\", style=\"rounded\"];\n\t8[label = \"make\nhicpro\nconfig\", color = \"#0000FF\", style=\"rounded\"];\n\t9[label = \"bowtie2\nindex\", color = \"#0000FF\", style=\"rounded\"];\n\t10[label = \"get\nchrom\nsizes\", color = \"#0000FF\", style=\"rounded\"];\n\t11[label = \"hicpro\nmerge\", color = \"#FF0000\", style=\"rounded\"];\n\t12[label = \"hicpro\nproc\", color = \"#FF0000\", style=\"rounded\"];\n\t13[label = \"hicpro\nmapping\", color = \"#FF0000\", style=\"rounded\"];\n\t14[label = \"adapter\nremoval\", color = \"#FF0000\", style=\"rounded\"];\n\t15[label = \"collect\noutput\nvalid\npairs\", color = \"#228B22\", style=\"rounded\"];\n\t16[label = \"collect\noutput\nmatrices\", color = \"#228B22\", style=\"rounded\"];\n\t17[label = \"collect\nstats\", color = \"#FFA500\", style=\"rounded\"];\n\t18[label = \"hicpro\nqc\", color = \"#FFA500\", style=\"rounded\"];\n\t19[label = \"run\nmaxhic\", color = \"#FF0000\", style=\"rounded\"];\n\t20[label = \"install\nmaxhic\", color = \"#0000FF\", style=\"rounded\"];\n\t21[label = \"extract\nsignificant\ninteractions\", color = \"#FFA500\", style=\"rounded\"];\n\t22[label = \"initialise\nr\nproject\", color = \"#0000FF\", style=\"rounded\"];\n\t23[label = \"build\nsite\nindex\", color = \"#FFA500\", style=\"rounded\"];\n\t24[label = \"build\nraw\nqc\nreport\", color = \"#FFA500\", style=\"rounded\"];\n\t25[label = \"raw\nfastqc\", color = \"#FFA500\", style=\"rounded\"];\n\t26[label = \"build\ntrimmed\nqc\nreport\", color = \"#FFA500\", style=\"rounded\"];\n\t27[label = \"trim\nfastqc\", color = \"#FFA500\", style=\"rounded\"];\n\t28[label = \"build\nhic\nqc\nreport\", color = \"#FFA500\", style=\"rounded\"];\n\t29[label = \"get\nfragment\nlengths\", color = \"#FFA500\", style=\"rounded\"];\n\t30[label = \"convert\nfragment\nsize\nplot\", color = \"#FFA500\", style=\"rounded\"];\n\t31[label = \"summarise\nsignificant\ninteractions\", color = \"#FFA500\", style=\"rounded\"];\n\t32[label = \"RAW DATA\", color = \"#FF0000\", style=\"rectangle\"];\n\t2 -> 1\n\t3 -> 2\n\t4 -> 3\n\t6 -> 5\n\t7 -> 6\n\t11 -> 7\n\t8 -> 7\n\t10 -> 8\n\t9 -> 8\n\t2 -> 8\n\t3 -> 9\n\t12 -> 11\n\t8 -> 11\n\t13 -> 12\n\t8 -> 12\n\t9 -> 13\n\t8 -> 13\n\t14 -> 13\n\t11 -> 15\n\t7 -> 16\n\t11 -> 17\n\t11 -> 18\n\t13 -> 18\n\t8 -> 18\n\t20 -> 19\n\t6 -> 19\n\t19 -> 21\n\t22 -> 23\n\t31 -> 23\n\t26 -> 23\n\t24 -> 23\n\t28 -> 23\n\t25 -> 24\n\t22 -> 24\n\t27 -> 26\n\t22 -> 26\n\t14 -> 27\n\t30 -> 28\n\t17 -> 28\n\t22 -> 28\n\t29 -> 28\n\t2 -> 29\n\t18 -> 30\n\t21 -> 31\n\t22 -> 31\n\t32 -> 14\n\t32 -> 22\n\t32 -> 25\n}            ","config":{"engine":"dot","options":null}},"evals":[],"jsHooks":[]}</script>
 <p class="caption">
 <em>Summary of processing workflow. The primary data pipeline is shown in red, with QC/reporting steps shown in orange. Preparatory steps are shown in blue whilst collation of final output is in green.</em>
 </p>
