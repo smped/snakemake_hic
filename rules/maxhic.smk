@@ -1,8 +1,9 @@
 rule install_maxhic:
     output:
-        exe = "scripts/MaxHiC/Main.py",
-        general = directory("scripts/MaxHiC/General"),
-        capture = directory("scripts/MaxHiC/Capture")
+        exe = temp("scripts/MaxHiC/Main.py"),
+        md = temp("scripts/MaxHiC/README.md"),
+        general = temp(directory("scripts/MaxHiC/General")),
+        capture = temp(directory("scripts/MaxHiC/Capture"))
     log: "logs/MaxHiC/install.log"
     threads: 1
     shell:
