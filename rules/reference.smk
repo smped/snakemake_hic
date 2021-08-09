@@ -67,11 +67,7 @@ rule get_chrom_sizes:
         # Download the assembly report
         TEMPDIR=$(mktemp -d -t chrXXXXXXXXXX)
         REPORT="assembly_report.txt"
-	curl {params.ftp} > $TEMPDIR/$REPORT 2> {log}
-#        wget \
-#            -O "$TEMPDIR/$REPORT" \
-#            -o {log} \
-#            {params.ftp}
+	    curl {params.ftp} > $TEMPDIR/$REPORT 2> {log}
 
         # Extract the chrom_sizes
         egrep 'assembled-molecule' "$TEMPDIR/$REPORT" | \

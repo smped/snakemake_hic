@@ -34,10 +34,11 @@ rule get_fragment_lengths:
 rule zip_fragment_bedfile:
     input: rules.find_restriction_fragments.output.rs
     output: rs_frags + ".gz"
-    threads: 1
+    threads: 4
+    conda: "../envs/pigz.yml"
     shell:
         """
-        gzip -c {input} > {output}
+        pigz -p {threads} -c {input} > {output}
         """
 
 rule make_hicpro_config:

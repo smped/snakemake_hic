@@ -1,0 +1,6 @@
+name: pigz
+channels:
+  - defaults
+  - conda-forge
+dependencies:
+  - pigz=2.6

@@ -18,3 +18,4 @@ scripts/MaxHiC/*
 *txt.gz
 .Rhistory
 .Rproj.user
+*Rproj

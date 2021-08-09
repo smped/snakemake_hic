@@ -10,10 +10,11 @@ rule collect_output_valid_pairs:
         valid_pairs = os.path.join(
             hic_output_path, "allValidPairs", "{sample}.allValidPairs.gz"
         )
-    threads: 1
+    threads: 4
+    conda: "../envs/pigz.yml"
     shell:
         """
-        gzip -c {input.valid_pairs} > {output.valid_pairs}
+        pigz -p {threads} -c {input.valid_pairs} > {output.valid_pairs}
         """
 
 rule collect_output_matrices:
@@ -26,10 +27,11 @@ rule collect_output_matrices:
         matrix = os.path.join(
           hic_output_path, "matrix", "raw", "{bin}", "{sample}_{bin}.matrix.gz"
         )
-    threads: 1
+    threads: 4
+    conda: "../envs/pigz.yml"
     shell:
         """
-        gzip -c {input.matrix} > {output.matrix}
+        pigz -p {threads} -c {input.matrix} > {output.matrix}
         """
 
 rule collect_stats:

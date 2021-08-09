@@ -1,23 +1,30 @@
 rule merge_interaction_matrices:
     input:
         mat = expand(
-          hic_data_path + "/hic_results/matrix/{sample}/raw/{{bin}}/{sample}_{{bin}}.matrix",
-          sample = samples
+            os.path.join(
+                hic_data_path, "hic_results", "matrix", "{sample}", "raw",
+                "{{bin}}", "{sample}_{{bin}}.matrix"
+            ),
+            sample = samples
         ),
         bed = expand(
-          hic_data_path + "/hic_results/matrix/{sample}/raw/{{bin}}/{sample}_{{bin}}_abs.bed",
-          sample = samples
+            os.path.join(
+                hic_data_path, "hic_results", "matrix", "{sample}", "raw",
+                "{{bin}}/{sample}_{{bin}}_abs.bed"
+            ),
+            sample = samples
         )
     output:
         mat = temp(
-          os.path.join(
-            hic_output_path, "matrix", "raw", "{bin}", "merged_{bin}.matrix"
-          )
+            os.path.join(
+                hic_output_path, "matrix", "raw", "{bin}", "merged_{bin}.matrix"
+            )
         ),
         bed = temp(
-          os.path.join(
-            hic_output_path, "matrix", "raw", "{bin}", "merged_{bin}_abs.bed"
-          )
+            os.path.join(
+                hic_output_path, "matrix", "raw", "{bin}",
+                "merged_{bin}_abs.bed"
+            )
         )
     params:
         samples = samples,
@@ -30,11 +37,11 @@ rule merge_interaction_matrices:
     shell:
         """
         Rscript --vanilla \
-          scripts/merge_matrices.R \
-          {params.bin} \
-          {params.in_path} \
-          {params.out_path} \
-          {params.samples} &> {log}
+            scripts/merge_matrices.R \
+            {params.bin} \
+            {params.in_path} \
+            {params.out_path} \
+            {params.samples} &> {log}
         """
 
 rule compress_merged_output:
@@ -52,9 +59,10 @@ rule compress_merged_output:
         bed = os.path.join(
             hic_output_path, "matrix", "merged_{bin}_abs.bed.gz"
         )
-    threads: 1
+    threads: 4
+    conda: "../envs/pigz.yml"
     shell:
         """
-          gzip -c {input.mat} > {output.mat}
-          gzip -c {input.bed} > {output.bed}
+        pigz -p {threads} -c {input.mat} > {output.mat}
+        pigz -p {threads} -c {input.bed} > {output.bed}
         """
