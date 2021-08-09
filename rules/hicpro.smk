@@ -163,6 +163,16 @@ rule hicpro_qc:
                 )
             ],
             sample = samples
+        ),
+	stat = expand(
+	    [
+            	os.path.join(
+                    hic_data_path, "hic_results", "stats", "{sample}",
+                    "{sample}{suffix}"
+                )
+            ],
+            sample = samples,
+            suffix = ['.mRSstat', read_ext[0] + ".mmapstat", read_ext[1] + ".mmapstat", "_allValidPairs.mergestat", ".mpairstat"]
         )
     output:
         temp(
