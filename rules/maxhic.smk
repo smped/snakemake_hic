@@ -47,5 +47,5 @@ rule run_maxhic:
           {params.output_path} &> {log}
 
         ## Compress the output files
-        gzip {params.output_path}/*txt
+        pigz -p {threads} {params.output_path}/*txt
         """
