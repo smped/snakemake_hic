@@ -1,5 +1,5 @@
 rule find_restriction_fragments:
-    input: rules.unzip_reference.output
+    input: ancient(os.path.join(ref_path, ref_fa))
     output:
         rs = temp(rs_frags)
     params:
@@ -164,8 +164,8 @@ rule hicpro_qc:
             ],
             sample = samples
         ),
-	stat = expand(
-	    [
+	      stat = expand(
+	          [
             	os.path.join(
                     hic_data_path, "hic_results", "stats", "{sample}",
                     "{sample}{suffix}"
