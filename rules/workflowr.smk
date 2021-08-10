@@ -37,8 +37,8 @@ rule build_raw_qc_report:
     input:
         rproj = rproj,
         fqc = expand(
-            ["data/raw/FastQC/{sample}_{reads}_fastqc.zip"],
-            reads = ['R1', 'R2'],
+            ["data/raw/FastQC/{sample}{reads}_fastqc.zip"],
+            reads = read_ext,
             sample = list(df['path'])
         ),
         config_yml = "config/config.yml",
@@ -60,8 +60,8 @@ rule build_trimmed_qc_report:
     input:
         rproj = rproj,
         fqc = expand(
-            ["data/trimmed/FastQC/{sample}_{reads}_fastqc.zip"],
-            reads = ['R1', 'R2'],
+            ["data/trimmed/FastQC/{sample}{reads}_fastqc.zip"],
+            reads = read_ext,
             sample = list(df['path'])
         ),
         config_yml = "config/config.yml",

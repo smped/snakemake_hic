@@ -9,7 +9,7 @@ rule raw_fastqc:
     params: config['fastqc']['params']
     log:
         "logs/FastQC/raw/{sample}/{file}_{reads}.log"
-    threads: 1
+    threads: 4
     shell:
         """
         # Write to a separate temp directory for each run to avoid I/O clashes
@@ -39,7 +39,7 @@ rule trim_fastqc:
     params: config['fastqc']['params']
     log:
         "logs/FastQC/trimmed/{sample}/{file}_{reads}.log"
-    threads: 1
+    threads: 4
     shell:
         """
         # Write to a separate temp directory for each run to avoid I/O clashes

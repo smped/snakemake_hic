@@ -1,10 +1,10 @@
 rule adapter_removal:
     input:
-        r1 = "data/raw/fastq/{sample}/{file}_R1.fastq.gz",
-        r2 = "data/raw/fastq/{sample}/{file}_R2.fastq.gz"
+        r1 = "data/raw/fastq/{sample}/{file}" + read_ext[0] + suffix,
+        r2 = "data/raw/fastq/{sample}/{file}" + read_ext[1] + suffix
     output:
-        t1 = temp(trim_path + "/{sample}/{file}_R1.fastq.gz"),
-        t2 = temp(trim_path + "/{sample}/{file}_R2.fastq.gz"),
+        t1 = temp(trim_path + "/{sample}/{file}" + read_ext[0] + suffix),
+        t2 = temp(trim_path + "/{sample}/{file}" + read_ext[1] + suffix),
         log = "data/trimmed/logs/{sample}/{file}.settings"
     conda:
         "../envs/adapterremoval.yml"
@@ -14,7 +14,7 @@ rule adapter_removal:
         minlength = config['trimming']['minlength'],
         minqual = config['trimming']['minqual'],
         maxns = config['trimming']['maxns']
-    threads: 1
+    threads: 4
     log:
         "logs/adapterremoval/{sample}/{file}.log"
     shell:
