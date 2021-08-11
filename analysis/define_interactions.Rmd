@@ -52,8 +52,10 @@ config <- here::here("config/config.yml") %>%
 # Introduction
 
 The output from MaxHiC is extremely large and for some bin-sizes, near impossible to wrangle on a standard laptop.
-In this workflow, each set of outputs containing the **cis** interactions will be loaded and reduced to only the *significant* interactions.
+In this workflow, each set of outputs containing the **cis** interactions will be loaded and reduced to only the *significant* interactions using the simple criteria of an FDR < `r alpha`.
 These far smaller sets of interactions are more easily managed in a standard compute environment.
+The set of **trans** interactions satisfying the same FDR were also prepared.
+
 Analyses were run for genomic bins of `r pander(paste0(as.numeric(str_split(config$hicpro$bin_size, pattern = " ")[[1]])/1e3, "kb"))` .
 
 # Cis Interactions {.tabset}
@@ -285,80 +287,70 @@ for (sz in bin_sizes) {
         glue_collapse(range(gi$counts), last = ' & '),
         .sep = " "
       ),
-      "\n"
+      "\n\n"
     )
     
   }
 
   ## Some plots
-  cat("\n### Interaction Summary\n\n")
-  a <- gi %>%
-    anchors() %>%
-    GRangesList() %>% 
-    unlist() %>% 
-    seqnames() %>%
-    table() %>%
-    enframe(
-      name = "chr",
-      value = "count"
-    ) %>%
-    mutate(
-      chr = str_remove_all(chr, "chr"),
-      chr = fct_inorder(chr),
-      count = as.integer(count)
-    ) %>%
-    ggplot(aes(chr, count)) +
-    geom_col() +
-    labs(
-      x = "Chromosome",
-      y = glue("Total Significant Trans Interactions ({sz/1e3}kb bins)")
-    ) +
-    scale_y_continuous(expand = expansion(c(0, 0.05)), labels = comma)
-  b <- gi %>%
-    anchors() %>%
-    GRangesList() %>% 
-    unlist() %>% 
-    seqnames() %>%
-    table() %>%
-    enframe(
-      name = "seqnames",
-      value = "count"
-    ) %>%
-    mutate(
-      seqnames = factor(seqnames, levels = seqlevels(gi)),
-      count = as.integer(count)
+  # cat("\n### Interaction Summary\n\n")
+  gi %>% 
+    as.data.frame() %>% 
+    as_tibble() %>% 
+    group_by(seqnames1, seqnames2) %>% 
+    tally() %>% 
+    ungroup() %>%
+    bind_rows(
+      setNames(., c("seqnames2", "seqnames1", "n"))
     ) %>% 
-    left_join(
-      tibble(
-        seqnames = seqlevels(gi),
-        seqlengths = seqlengths(gi)
-      )
-    ) %>% 
-    mutate(
-      count_per_mb = count / (seqlengths / 1e6),
-      chr = str_remove_all(seqnames, "chr"),
-      chr = fct_inorder(chr)
-    ) %>%
+    complete(seqnames1, seqnames2, fill = list(n = 0)) %>% 
     ggplot(
-      aes(chr, count_per_mb)
+      aes(seqnames1, seqnames2, fill = n)
     ) +
-    geom_col() +
+    geom_tile(
+      data = . %>% 
+        dplyr::filter(
+          as.integer(seqnames1) > as.integer(seqnames2)
+        ),
+      na.rm = FALSE) +
+    geom_text(
+      aes(
+        x = as.integer(seqnames2), 
+        y = as.integer(seqnames1), 
+        label = n,
+        alpha = n
+      ),
+      data = . %>% 
+        dplyr::filter(
+          as.integer(seqnames1) > as.integer(seqnames2),
+          n > 0.01*length(gi)
+        ),
+      show.legend = FALSE
+    ) +
+    guides(alpha = NULL) +
+    scale_x_discrete(drop = FALSE) +
+    scale_y_discrete(drop = FALSE) +
+    scale_fill_viridis_c() +
+    scale_alpha(trans = "log") +
     labs(
       x = "Chromosome",
-      y = glue("Significant Trans Interactions per Mb ({sz/1e3}kb bins)")
+      y = "Chromosome",
+      fill = "Bin\nPairs"
     ) +
-    scale_y_continuous(expand = expansion(c(0, 0.05)))
-  plot_grid(a, b, labels = c("A", "B"))
+    theme(
+      axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5),
+      panel.grid = element_blank()
+    )
   ggsave(
     here::here("docs/assets", glue("interaction_summary_{sz}_trans.png")),
-    width = 8, height = 5
+    width = 8, height = 6
   )
   cat(
-    glue("![*Trans interactions by chromosome using {sz/1e3}kb bins*](assets/interaction_summary_{sz}_trans.png)"),
+    glue("![*Trans interactions by chromosome using {sz/1e3}kb bins. Numeric values in the upper section are only shown for chromosome pairs with > 1% of the retained trans interactions*](assets/interaction_summary_{sz}_trans.png)"),
     "\n"
   )
   cat("\n\n")
 
-
 }
 ```
+

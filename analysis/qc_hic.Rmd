@@ -30,6 +30,8 @@ library(scales)
 library(S4Vectors)
 library(glue)
 library(knitr)
+library(rtracklayer)
+library(vroom)
 ```
 
 
@@ -124,7 +126,10 @@ here::here("output", "hic_pro") %>%
   as_tibble() %>% 
   pivot_longer(cols = everything(), names_to = "sample") %>% 
   mutate(
-    sample = basename(sample) %>% str_remove_all("_R[12].mmapstat")
+    sample = basename(sample) %>% 
+      str_remove_all(
+        pattern = with(config$hicpro, glue("({pair1_ext}|{pair2_ext}).mmapstat"))
+      )
   ) %>% 
   unnest(value) %>% 
   separate(category, into = c("category", "reads")) %>% 
@@ -173,7 +178,7 @@ here::here("output", "hic_pro") %>%
       ),
     colour = hcl.colors(3, "cividis")[2],
     size = 3.1,
-    nudge_y = -3e6,
+    nudge_y = -1e6,
     inherit.aes = FALSE
   ) +
   facet_wrap(~reads) +
@@ -248,7 +253,7 @@ paired_df %>%
       ),
     colour = hcl.colors(4, "cividis")[3],
     size = 3.2,
-    nudge_y = -3e6,
+    nudge_y = -1e6,
     inherit.aes = FALSE
   ) +
   scale_y_continuous(labels = comma, expand = expansion(c(0, 0.05))) +
@@ -329,7 +334,7 @@ here::here("output", "hic_pro") %>%
       ),
     inherit.aes = FALSE,
     size = 3.2,
-    nudge_y = -3e6,
+    nudge_y = -1e6,
     show.legend = FALSE
   ) +
   scale_y_continuous(labels = comma, expand = expansion(c(0, 0.05))) +
@@ -383,11 +388,20 @@ here::here("output", "hic_pro") %>%
     category = str_replace_all(category, "Shortrange", "Short Range (<20kb)"),
     category = str_replace_all(category, "Longrange", "Long Range (>20kb)"),
     category = str_replace_all(category, "Duplicates", "Duplicates (Removed)"),
-    category = fct_inorder(category),
+    category = factor(
+      category, 
+      levels = rev(
+        c(
+        "Duplicates (Removed)", "Valid Interactions", "Trans Interactions",
+        "Cis Interactions", "Cis Long Range (>20kb)", "Cis Short Range (<20kb)"
+        )
+      )
+    ),
     valid = str_detect(category, "Valid"),
     cis = str_detect(category, "Cis"),
     sample = as.factor(sample)
   ) %>% 
+  arrange(category) %>%
   ggplot(
     aes(sample, total, fill = fct_rev(category))
   ) +
@@ -416,7 +430,7 @@ here::here("output", "hic_pro") %>%
       dplyr::filter(valid),
     size = 3.2,
     colour = hcl.colors(4, "cividis")[3],
-    nudge_y = -3e6,
+    nudge_y = -1e6,
     inherit.aes = FALSE
   ) +
   geom_text(
@@ -425,7 +439,7 @@ here::here("output", "hic_pro") %>%
       dplyr::filter(category == "Cis Interactions"),
     size = 3.2,
     colour = hcl.colors(4, "cividis")[2],
-    nudge_y = -3e6,
+    nudge_y = -1e6,
     inherit.aes = FALSE
   ) +
   scale_y_continuous(labels = comma, expand = expansion(c(0, 0.05))) +
@@ -453,4 +467,88 @@ for (s in levels(samples$sample)) {
 }
 ```
 
+# All Cis Interactions {.tabset}
 
+```{r bs}
+bs <- str_split(config$hicpro$bin_size, pattern = " ")[[1]] %>% 
+  as.integer() %>% 
+  max()
+```
+
+The sets of interactions were visualised for all chromosomes using the largest bin size (`r glue("{bs/1e3}kb")`) to provide a 'zoomed-out' view of each chromosome.
+
+
+```{r prepare_interactions_png}
+grl <- here::here(
+    glue("output/hic_pro/matrix/merged_{bs}_abs.bed.gz")
+  ) %>% 
+  import.bed() %>% 
+  setNames(.$name) %>% 
+  split(f = seqnames(.))
+df <- here::here(
+    glue("output/hic_pro/matrix/merged_{bs}.matrix.gz")
+  ) %>% 
+  vroom(
+    col_names = c("bin1", "bin2", "counts"),
+    col_types = "cci"
+  )
+count_lim <- range(log2(df$counts + 1))
+for (chr in setdiff(names(grl), "chrY")) {
+  message(glue("Plotting {chr}..."))
+  df %>%  
+    dplyr::filter( 
+      bin1 %in% grl[[chr]]$name, 
+      bin2 %in% grl[[chr]]$name, 
+    ) %>%
+    mutate(
+      across(
+        starts_with("bin"),
+        factor,
+        levels = names(grl[[chr]])
+      ),
+      counts = log2(counts + 1)
+    ) %>% 
+    bind_rows(
+      setNames(., c("bin2", "bin1", "counts"))
+    ) %>%
+    full_join(
+      tidyr::expand(., bin1, bin2),
+      by = c("bin1", "bin2")
+    ) %>% 
+    arrange(bin1, bin2) %>% 
+    ggplot(
+      aes(
+        as.integer(bin1)*bs/1e6, as.integer(bin2)*bs/1e6, fill = counts)
+    ) +
+    geom_raster() +
+    scale_x_continuous(
+      expand = expansion(c(0, 0)), 
+      name = glue("{chr} (Mb)")
+    ) +
+    scale_y_continuous(
+      expand = expansion(c(0, 0)), 
+      name = glue("{chr} (Mb)")
+    ) +
+    scale_fill_viridis_c(
+      name = "log2(counts + 1)",
+      na.value = "#4B0055",
+      limits = count_lim
+    )
+    ggsave(
+      here::here(
+        "docs", "assets", glue("hic_interactions_{bs}_{chr}.png")
+      ),
+      width = 8, height = 6
+    )
+}
+```
+
+```{r, results='asis', echo=FALSE}
+for (chr in setdiff(names(grl), "chrY")) {
+  cat("##", chr, "\n\n")
+  cat(
+    glue("![](assets/hic_interactions_{bs}_{chr}.png)"),
+    "\n\n"
+  )
+}
+```
