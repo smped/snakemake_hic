@@ -471,7 +471,7 @@ for (s in levels(samples$sample)) {
 
 ```{r bs}
 bs <- str_split(config$hicpro$bin_size, pattern = " ")[[1]] %>% 
-  as.integer() %>% 
+  as.integer() %>%
   max()
 ```
 
@@ -492,7 +492,7 @@ df <- here::here(
     col_names = c("bin1", "bin2", "counts"),
     col_types = "cci"
   )
-count_lim <- range(log2(df$counts + 1))
+count_lim <- c(0, max(log2(df$counts + 1)))
 for (chr in setdiff(names(grl), "chrY")) {
   message(glue("Plotting {chr}..."))
   df %>%  
@@ -508,37 +508,56 @@ for (chr in setdiff(names(grl), "chrY")) {
       ),
       counts = log2(counts + 1)
     ) %>% 
-    bind_rows(
-      setNames(., c("bin2", "bin1", "counts"))
-    ) %>%
     full_join(
       tidyr::expand(., bin1, bin2),
       by = c("bin1", "bin2")
     ) %>% 
-    arrange(bin1, bin2) %>% 
+    mutate(
+      counts = ifelse(is.na(counts), 0, counts),
+      x = as.integer(bin1)*bs/1e6,
+      y = as.integer(bin2)*bs/1e6,
+      rotx = x*cos(-pi/4) - y*sin(-pi/4),
+      rotx = max(x)*rotx/max(rotx),
+      roty = x*sin(-pi/4) + y*cos(-pi/4)
+    ) %>% 
+    dplyr::filter(roty >= 0) %>% 
+    arrange(desc(roty)) %>% 
     ggplot(
       aes(
-        as.integer(bin1)*bs/1e6, as.integer(bin2)*bs/1e6, fill = counts)
+        rotx, roty, colour = counts
+      )
     ) +
-    geom_raster() +
+    geom_point(
+      size = 0.4,
+      shape = 18
+    ) +
     scale_x_continuous(
       expand = expansion(c(0, 0)), 
       name = glue("{chr} (Mb)")
     ) +
     scale_y_continuous(
       expand = expansion(c(0, 0)), 
-      name = glue("{chr} (Mb)")
     ) +
-    scale_fill_viridis_c(
+    scale_colour_viridis_c(
       name = "log2(counts + 1)",
-      na.value = "#4B0055",
       limits = count_lim
+    ) +
+    theme(
+      axis.text.y = element_blank(),
+      axis.ticks.y = element_blank(),
+      axis.title.y = element_blank(),
+      legend.justification = c(1, 1),
+      legend.position = c(0.95, 0.95),
+      legend.title = element_text(size = 9),
+      panel.border = element_blank(),
+      panel.grid = element_blank(),
+      panel.background = element_blank()
     )
     ggsave(
       here::here(
         "docs", "assets", glue("hic_interactions_{bs}_{chr}.png")
       ),
-      width = 8, height = 6
+      width = 8, height = 5
     )
 }
 ```
