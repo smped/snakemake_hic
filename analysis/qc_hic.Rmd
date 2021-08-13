@@ -72,7 +72,7 @@ samples <- config$samples %>%
   )
 ```
 
-## Restriction Fragment Sizes
+# Restriction Fragment Sizes
 
 ```{r plot_frag_sizes, fig.width = 8, fig.height = 5, fig.cap = "*Distribution of fragment sizes from the restriction digest.*"}
 here::here("output", config$ref$build, "fragment_length.counts") %>% 
@@ -106,9 +106,9 @@ here::here("output", config$ref$build, "fragment_length.counts") %>%
 ```
 
 
-## Mapping Statistics {.tabset}
+# Mapping Statistics {.tabset}
 
-### Individual Read Mapping
+## Individual Read Mapping
 
 ```{r plot_mapping_unpaired, fig.cap = "*Summary of mapping rates by sample and read.*"}
 here::here("output", "hic_pro") %>% 
@@ -193,7 +193,7 @@ here::here("output", "hic_pro") %>%
 ```
 
 
-### Paired Mapping
+## Paired Mapping
 
 ```{r plot_mapping_paired, fig.cap = "*Summary of paired mapping rates by sample.*"}
 paired_df <- here::here("output", "hic_pro") %>% 
@@ -266,7 +266,7 @@ paired_df %>%
 ```
 
 
-### Mapping To Restriction Fragments
+## Mapping To Restriction Fragments
 
 ```{r plot_mapping_to_rf, fig.cap = "*Valid mappings to restriction fragments by read orientation.*"}
 bl <- hcl.colors(5, "Blues")[1:4]
@@ -349,7 +349,7 @@ here::here("output", "hic_pro") %>%
   )
 ```
 
-### Contact Ranges
+## Contact Ranges
 
 ```{r plot_contact_ranges, fig.cap = "*Plot showing contact ranges. Interactions corresponding to PCR duplicates were excluded and are shown in yellow. Cis Interactions are considered the most reliable and combined totals are shown as percentages.*"}
 here::here("output", "hic_pro") %>% 
@@ -451,11 +451,11 @@ here::here("output", "hic_pro") %>%
   )
 ```
 
-## HiC Fragment Sizes {.tabset}
+# HiC Fragment Sizes {.tabset}
 
 ```{r png_fragment_sizes, results='asis'}
 for (s in levels(samples$sample)) {
-  cat("###", s, "\n")
+  cat("##", s, "\n")
   cat("\n")
   png_path <- file.path("assets", glue("plotHiCFragmentSize_{s}.png"))
   cat(
